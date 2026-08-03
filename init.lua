@@ -1,4 +1,4 @@
---// DELTA UNIVERSAL v20.0 - VERSÃO FINAL CORRIGIDA E OTIMIZADA
+--// DELTA UNIVERSAL v20.0 - VERSÃO FINAL CORRIGIDA E OTIMIZADA + ATALHO DE ALGEMAS
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
 local Camera = workspace.CurrentCamera
@@ -26,6 +26,11 @@ RunService.RenderStepped:Connect(EB)
 
 local HUI = LocalPlayer:WaitForChild("PlayerGui")
 if HUI:FindFirstChild("DeltaUniversal") then HUI.DeltaUniversal:Destroy() end
+
+-- Limpa resquícios antigos do menu de algema se houver
+if HUI:FindFirstChild("MenuAtalhoAlgema") then
+    HUI.MenuAtalhoAlgema:Destroy()
+end
 
 local C = { A=false, TO=false, WC=false, SF=false, TP="HumanoidRootPart", SM=0.4, MD=300, FS="Square", FH=80, FB=80, LW=30, RW=30 }
 local Circle = Drawing.new("Circle"); Circle.Thickness = 2; Circle.Filled = false; Circle.Visible = false
@@ -284,6 +289,125 @@ local ReviveBtn = Instance.new("TextButton", sp); ReviveBtn.Size = UDim2.new(1, 
 
 LO = LO + 1
 local ReviveStatus = Instance.new("TextLabel", sp); ReviveStatus.Size = UDim2.new(1, 0, 0, 18); ReviveStatus.LayoutOrder = LO; ReviveStatus.Text = "Status: Desligado"; ReviveStatus.TextColor3 = Color3.fromRGB(180, 180, 200); ReviveStatus.BackgroundTransparency = 1; ReviveStatus.Font = Enum.Font.Gotham; ReviveStatus.TextSize = 10; ReviveStatus.TextXAlignment = Enum.TextXAlignment.Left
+
+-- ATALHO DE ALGEMAS
+LO = LO + 1; SH(sp, "ATALHO ALGEMAS")
+
+LO = LO + 1
+local btnToggle = Instance.new("TextButton", sp)
+btnToggle.Size = UDim2.new(1, 0, 0, 30)
+btnToggle.LayoutOrder = LO
+btnToggle.BackgroundColor3 = Color3.fromRGB(200, 50, 50)
+btnToggle.Text = "Atalho: OFF ❌"
+btnToggle.TextColor3 = Color3.fromRGB(255, 255, 255)
+btnToggle.TextSize = 12
+btnToggle.Font = Enum.Font.GothamBold
+Instance.new("UICorner", btnToggle).CornerRadius = UDim.new(0, 6)
+
+LO = LO + 1
+local btnTrava = Instance.new("TextButton", sp)
+btnTrava.Size = UDim2.new(1, 0, 0, 30)
+btnTrava.LayoutOrder = LO
+btnTrava.BackgroundColor3 = Color3.fromRGB(70, 70, 70)
+btnTrava.Text = "Travar Botão: OFF 🔓"
+btnTrava.TextColor3 = Color3.fromRGB(255, 255, 255)
+btnTrava.TextSize = 12
+btnTrava.Font = Enum.Font.GothamBold
+Instance.new("UICorner", btnTrava).CornerRadius = UDim.new(0, 6)
+
+-- Botão Rosa Pequeno e Redondo
+local btnRosa = Instance.new("TextButton", Gui)
+btnRosa.Name = "BtnRosaAlgema"
+btnRosa.Size = UDim2.new(0, 45, 0, 45) 
+btnRosa.Position = UDim2.new(0.5, -22, 0.7, 0) 
+btnRosa.BackgroundColor3 = Color3.fromRGB(255, 105, 180)
+btnRosa.Text = "🔗"
+btnRosa.TextSize = 18
+btnRosa.Visible = false
+btnRosa.Active = true
+btnRosa.Draggable = true 
+btnRosa.ZIndex = 150
+Instance.new("UICorner", btnRosa).CornerRadius = UDim.new(1, 0)
+
+local ligado = false
+local travado = false
+
+btnToggle.MouseButton1Click:Connect(function()
+    ligado = not ligado
+    if ligado then
+        btnToggle.Text = "Atalho: ON ✔️"
+        btnToggle.BackgroundColor3 = Color3.fromRGB(40, 167, 69)
+        btnRosa.Visible = true
+    else
+        btnToggle.Text = "Atalho: OFF ❌"
+        btnToggle.BackgroundColor3 = Color3.fromRGB(200, 50, 50)
+        btnRosa.Visible = false
+    end
+end)
+
+btnTrava.MouseButton1Click:Connect(function()
+    travado = not travado
+    if travado then
+        btnTrava.Text = "Travar Botão: ON 🔒"
+        btnTrava.BackgroundColor3 = Color3.fromRGB(217, 130, 43)
+        btnRosa.Draggable = false
+    else
+        btnTrava.Text = "Travar Botão: OFF 🔓"
+        btnTrava.BackgroundColor3 = Color3.fromRGB(70, 70, 70)
+        btnRosa.Draggable = true
+    end
+end)
+
+-- Nova Ação Inteligente e Abrangente para o Botão Rosa
+btnRosa.MouseButton1Click:Connect(function()
+    pcall(function()
+        local currentGui = Players.LocalPlayer:WaitForChild("PlayerGui")
+        local executed = false
+
+        -- Tentativa 1: Varredura por qualquer botão com nome relacionado a algema na tela
+        for _, gui in ipairs(currentGui:GetChildren()) do
+            if gui:IsA("ScreenGui") then
+                local algemarBtn = gui:FindFirstChild("Algemar", true) or gui:FindFirstChild("Cuff", true)
+                if algemarBtn and algemarBtn:IsA("GuiButton") then
+                    if typeof(getconnections) == "function" then
+                        for _, conexao in ipairs(getconnections(algemarBtn.MouseButton1Click)) do
+                            conexao:Fire()
+                            executed = true
+                        end
+                        for _, conexao in ipairs(getconnections(algemarBtn.Activated)) do
+                            conexao:Fire()
+                            executed = true
+                        end
+                    end
+                    if not executed and firesignal then
+                        firesignal(algemarBtn.MouseButton1Click)
+                        executed = true
+                    end
+                end
+            end
+        end
+
+        -- Tentativa 2: Busca por ProximityPrompt de algemar próximo
+        if not executed then
+            local char = LocalPlayer.Character
+            local hrp = char and char:FindFirstChild("HumanoidRootPart")
+            if hrp then
+                for _, obj in ipairs(workspace:GetDescendants()) do
+                    if obj:IsA("ProximityPrompt") and (obj.ActionText:lower():find("algemar") or obj.ObjectText:lower():find("algemar")) then
+                        if (hrp.Position - obj.Parent.Position).Magnitude <= 15 then
+                            fireproximityprompt(obj)
+                            executed = true
+                        end
+                    end
+                end
+            end
+        end
+        
+        if not executed then
+            warn("[Atalho Algema] Nenhum botão de algemar válido foi encontrado na tela no momento.")
+        end
+    end)
+end)
 
 local isReviveEnabled = false
 ReviveBtn.MouseButton1Click:Connect(function()
@@ -821,7 +945,6 @@ local mlwLayout = Instance.new("UIListLayout", mainListWrapper)
 mlwLayout.Padding = UDim.new(0, 6)
 mlwLayout.SortOrder = Enum.SortOrder.LayoutOrder
 
--- CRIANDO O TEXTBOX DE PESQUISA
 local searchBox = Instance.new("TextBox", mainListWrapper)
 searchBox.Size = UDim2.new(1, 0, 0, 26)
 searchBox.BackgroundColor3 = Color3.fromRGB(35, 35, 45)
@@ -947,4 +1070,4 @@ local function GCT() local cl, sh = nil, math.huge; local cn = Vector2.new(Camer
 
 RunService.RenderStepped:Connect(function() local lk = false; if C.A then local tg = GCT(); if tg then lk = true; local o = Camera.CFrame.Position; local la = CFrame.new(o, tg); local cr = Camera.CFrame - o; local tr = la - o; Camera.CFrame = CFrame.new(o) * cr:Lerp(tr, C.SM) end end; local fc = lk and Color3.fromRGB(0, 255, 120) or Color3.fromRGB(255, 60, 60); if C.SF then local cn = Vector2.new(Camera.ViewportSize.X / 2, Camera.ViewportSize.Y / 2); if C.FS == "Circle" then Circle.Visible = true; Circle.Radius = math.max(C.FH, C.FB, C.LW, C.RW); Circle.Position = cn; Circle.Color = fc; Square.Visible = false else Square.Visible = true; Square.Size = Vector2.new(C.LW + C.RW, C.FH + C.FB); Square.Position = Vector2.new(cn.X - C.LW, cn.Y - C.FH); Square.Color = fc; Circle.Visible = false end else Circle.Visible = false; Square.Visible = false end; local root = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart"); local hum = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Humanoid"); if root then if freezeEnabled and freezePosition then root.Anchored = true; root.CFrame = CFrame.new(freezePosition); if hum then hum.Sit = false end elseif isFlyModeEnabled then if dynamicFloorPart then dynamicFloorPart.CFrame = root.CFrame * CFrame.new(0, -3, 0) end; local floorY = root.Position.Y - 3 + 0.25; if root.Position.Y < floorY + 2 then root.CFrame = CFrame.new(root.Position.X, floorY + 2, root.Position.Z) end; if isHoldingUp then root.CFrame = root.CFrame + Vector3.new(0, movementSpeed * 0.05, 0) end; if isHoldingFwd then local camLook = Camera.CFrame.LookVector; root.CFrame = root.CFrame + (camLook * movementSpeed * 0.05); local flatLook = Vector3.new(camLook.X, 0, camLook.Z); if flatLook.Magnitude > 0.1 then local targetRotation = math.atan2(flatLook.X, flatLook.Z); root.CFrame = CFrame.new(root.Position) * CFrame.fromOrientation(0, targetRotation, 0) end end end end end)
 
-print("[Painel v20.0] Barra de pesquisa de jogadores adicionada com sucesso!")
+print("[Painel v20.0] Código completo carregado com sucesso!")

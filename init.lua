@@ -1,4 +1,4 @@
---// DELTA UNIVERSAL v20.0 - VERSÃO FINAL CORRIGIDA E OTIMIZADA + ATALHO DE ALGEMAS E DEITAR
+--// DELTA UNIVERSAL v20.1 - VERSÃO CORRIGIDA FOV DINÂMICO & AIMBOT
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
 local Camera = workspace.CurrentCamera
@@ -27,14 +27,13 @@ RunService.RenderStepped:Connect(EB)
 local HUI = LocalPlayer:WaitForChild("PlayerGui")
 if HUI:FindFirstChild("DeltaUniversal") then HUI.DeltaUniversal:Destroy() end
 
--- Limpa resquícios antigos se houver
 if HUI:FindFirstChild("MenuAtalhoAlgema") then
     HUI.MenuAtalhoAlgema:Destroy()
 end
 
 local C = { A=false, TO=false, WC=false, SF=false, TP="HumanoidRootPart", SM=0.4, MD=300, FS="Square", FH=80, FB=80, LW=30, RW=30 }
-local Circle = Drawing.new("Circle"); Circle.Thickness = 2; Circle.Filled = false; Circle.Visible = false
-local Square = Drawing.new("Square"); Square.Thickness = 2; Square.Filled = false; Square.Visible = false
+local Circle = Drawing.new("Circle"); Circle.Thickness = 2; Circle.Filled = false; Circle.Visible = false; Circle.Color = Color3.fromRGB(255, 0, 0)
+local Square = Drawing.new("Square"); Square.Thickness = 2; Square.Filled = false; Square.Visible = false; Square.Color = Color3.fromRGB(255, 0, 0)
 
 local espSize = 0.8; local espTransparency = 0.4; local espEnabled = true; local espData = {}
 local function createESP(p) 
@@ -72,7 +71,7 @@ Instance.new("UICorner", TB).CornerRadius = UDim.new(0, 12)
 
 local T = Instance.new("TextLabel", TB); T.Size = UDim2.new(1, -15, 1, 0); T.Position = UDim2.new(0, 10, 0, 0); T.BackgroundTransparency = 1; T.Text = " PAINEL"
 T.TextColor3 = Color3.new(1, 1, 1); T.Font = Enum.Font.GothamBold; T.TextSize = 13; T.TextXAlignment = Enum.TextXAlignment.Left; T.ZIndex = 11
-local V = Instance.new("TextLabel", TB); V.Size = UDim2.new(0, 50, 1, 0); V.Position = UDim2.new(1, -55, 0, 0); V.BackgroundTransparency = 1; V.Text = "v20.0"
+local V = Instance.new("TextLabel", TB); V.Size = UDim2.new(0, 50, 1, 0); V.Position = UDim2.new(1, -55, 0, 0); V.BackgroundTransparency = 1; V.Text = "v20.1"
 V.TextColor3 = Color3.fromRGB(140, 140, 160); V.Font = Enum.Font.GothamMedium; V.TextSize = 9; V.TextXAlignment = Enum.TextXAlignment.Right; V.ZIndex = 11
 
 local MinimizeGlobalBtn = Instance.new("TextButton", TB); MinimizeGlobalBtn.Size = UDim2.new(0, 20, 0, 20); MinimizeGlobalBtn.Position = UDim2.new(1, -25, 0.5, -10)
@@ -231,13 +230,20 @@ local function AB(p, t, c, cb) LO = LO + 1; local b = Instance.new("TextButton",
 
 local ap = CC("AIMBOT", true); local ep = CC("ESP", false); local sp = CC("SINTONIA", false)
 local ip = CC("INTERAGIR", false); local cp = CC("CARRO", false); local tp = CC("TLPRT", false)
+local bp = CC("BAN PLAYER", false)
 
 -- ABA AIMBOT
 LO = 0; SH(ap, "CORE"); TG(ap, "Aimbot", false, function(v) C.A = v end); TG(ap, "Mostrar FOV", false, function(v) C.SF = v end)
-IB(ap, "Altura Cima", 80, function(v) C.FH = v end); IB(ap, "Altura Baixo", 80, function(v) C.FB = v end)
-IB(ap, "Largura Esq", 30, function(v) C.LW = v end); IB(ap, "Largura Dir", 30, function(v) C.RW = v end)
-AB(ap, "FORMATO: QUADRADO", Color3.fromRGB(28, 28, 36), function(b) C.FS = "Square"; b.BackgroundColor3 = Color3.fromRGB(0, 160, 100) end)
-AB(ap, "FORMATO: CÍRCULO", Color3.fromRGB(28, 28, 36), function(b) C.FS = "Circle"; b.BackgroundColor3 = Color3.fromRGB(0, 160, 100) end)
+IB(ap, "Raio / Altura", 80, function(v) C.FH = v; C.FB = v end)
+IB(ap, "Largura", 80, function(v) C.LW = v; C.RW = v end)
+local btnSquare, btnCircle
+local function updateFormatButtons(selected) 
+    C.FS = selected; local ac = Color3.fromRGB(0, 160, 100); local ic = Color3.fromRGB(28, 28, 36)
+    if btnSquare then btnSquare.BackgroundColor3 = selected == "Square" and ac or ic end
+    if btnCircle then btnCircle.BackgroundColor3 = selected == "Circle" and ac or ic end 
+end
+btnSquare = AB(ap, "FORMATO: QUADRADO", Color3.fromRGB(0, 160, 100), function() updateFormatButtons("Square") end)
+btnCircle = AB(ap, "FORMATO: CÍRCULO", Color3.fromRGB(28, 28, 36), function() updateFormatButtons("Circle") end)
 TG(ap, "Team Only", false, function(v) C.TO = v end); TG(ap, "Wall Check", false, function(v) C.WC = v end)
 SH(ap, "PRECISÃO"); IB(ap, "Suavidade", 0.4, function(v) C.SM = v end); IB(ap, "Distância Máx", 300, function(v) C.MD = v end)
 local btnHRP, btnHead, btnTorso
@@ -315,7 +321,6 @@ btnTrava.TextSize = 12
 btnTrava.Font = Enum.Font.GothamBold
 Instance.new("UICorner", btnTrava).CornerRadius = UDim.new(0, 6)
 
--- Botão Rosa Pequeno e Redondo (Algema)
 local btnRosa = Instance.new("TextButton", Gui)
 btnRosa.Name = "BtnRosaAlgema"
 btnRosa.Size = UDim2.new(0, 45, 0, 45) 
@@ -399,14 +404,10 @@ btnRosa.MouseButton1Click:Connect(function()
                 end
             end
         end
-        
-        if not executed then
-            warn("[Atalho Algema] Nenhum botão de algemar válido foi encontrado na tela no momento.")
-        end
     end)
 end)
 
--- ATALHO DE DEITAR (NOVO)
+-- ATALHO DE DEITAR
 LO = LO + 1; SH(sp, "ATALHO DEITAR")
 
 LO = LO + 1
@@ -431,12 +432,11 @@ btnDeitarTrava.TextSize = 12
 btnDeitarTrava.Font = Enum.Font.GothamBold
 Instance.new("UICorner", btnDeitarTrava).CornerRadius = UDim.new(0, 6)
 
--- Botão Flutuante de Deitar (Roxo / Magenta)
 local btnDeitarFlutuante = Instance.new("TextButton", Gui)
 btnDeitarFlutuante.Name = "BtnDeitarFlutuante"
 btnDeitarFlutuante.Size = UDim2.new(0, 45, 0, 45) 
 btnDeitarFlutuante.Position = UDim2.new(0.5, 30, 0.7, 0) 
-btnDeitarFlutuante.BackgroundColor3 = Color3.fromRGB(138, 43, 226) -- Roxo
+btnDeitarFlutuante.BackgroundColor3 = Color3.fromRGB(138, 43, 226)
 btnDeitarFlutuante.Text = "🛌"
 btnDeitarFlutuante.TextSize = 18
 btnDeitarFlutuante.Visible = false
@@ -479,7 +479,6 @@ btnDeitarFlutuante.MouseButton1Click:Connect(function()
         local currentGui = Players.LocalPlayer:WaitForChild("PlayerGui")
         local executed = false
 
-        -- Tentativa 1: Varredura por botões de deitar na tela
         for _, gui in ipairs(currentGui:GetChildren()) do
             if gui:IsA("ScreenGui") then
                 local deitarBtn = gui:FindFirstChild("Deitar", true) or gui:FindFirstChild("Sleep", true) or gui:FindFirstChild("Deit", true)
@@ -502,7 +501,6 @@ btnDeitarFlutuante.MouseButton1Click:Connect(function()
             end
         end
 
-        -- Tentativa 2: Busca por ProximityPrompt de deitar próximo
         if not executed then
             local char = LocalPlayer.Character
             local hrp = char and char:FindFirstChild("HumanoidRootPart")
@@ -516,10 +514,6 @@ btnDeitarFlutuante.MouseButton1Click:Connect(function()
                     end
                 end
             end
-        end
-        
-        if not executed then
-            warn("[Atalho Deitar] Nenhum botão de deitar válido foi encontrado na tela no momento.")
         end
     end)
 end)
@@ -761,7 +755,7 @@ toggleListBtn.Font = Enum.Font.GothamBold
 toggleListBtn.TextSize = 11
 Instance.new("UICorner", toggleListBtn).CornerRadius = UDim.new(0, 6)
 
--- PLATAFORMA MÓVEL E IMPULSO DE VISÃO (V10.6 INTEGRADO)
+-- PLATAFORMA MÓVEL E IMPULSO DE VISÃO
 local SAVE_FILE_NAME = "PlatformFlyConfig_V10.6.json"
 
 local isSystemActive = false
@@ -1060,18 +1054,18 @@ local mlwLayout = Instance.new("UIListLayout", mainListWrapper)
 mlwLayout.Padding = UDim.new(0, 6)
 mlwLayout.SortOrder = Enum.SortOrder.LayoutOrder
 
-local searchBox = Instance.new("TextBox", mainListWrapper)
-searchBox.Size = UDim2.new(1, 0, 0, 26)
-searchBox.BackgroundColor3 = Color3.fromRGB(35, 35, 45)
-searchBox.PlaceholderText = "Pesquisar jogador..."
-searchBox.Text = ""
-searchBox.TextColor3 = Color3.fromRGB(255, 255, 255)
-searchBox.PlaceholderColor3 = Color3.fromRGB(150, 150, 150)
-searchBox.Font = Enum.Font.Gotham
-searchBox.TextSize = 11
-searchBox.ClearTextOnFocus = false
-searchBox.BorderSizePixel = 0
-Instance.new("UICorner", searchBox).CornerRadius = UDim.new(0, 6)
+local searchBoxTP = Instance.new("TextBox", mainListWrapper)
+searchBoxTP.Size = UDim2.new(1, 0, 0, 26)
+searchBoxTP.BackgroundColor3 = Color3.fromRGB(35, 35, 45)
+searchBoxTP.PlaceholderText = "Pesquisar jogador..."
+searchBoxTP.Text = ""
+searchBoxTP.TextColor3 = Color3.fromRGB(255, 255, 255)
+searchBoxTP.PlaceholderColor3 = Color3.fromRGB(150, 150, 150)
+searchBoxTP.Font = Enum.Font.Gotham
+searchBoxTP.TextSize = 11
+searchBoxTP.ClearTextOnFocus = false
+searchBoxTP.BorderSizePixel = 0
+Instance.new("UICorner", searchBoxTP).CornerRadius = UDim.new(0, 6)
 
 local playerListContainer = Instance.new("Frame", mainListWrapper)
 playerListContainer.Size = UDim2.new(1, 0, 0, 0)
@@ -1126,7 +1120,7 @@ local function UpdatePlayerList()
     local plrs = Players:GetPlayers()
     table.sort(plrs, function(a, b) return a.Name:lower() < b.Name:lower() end)
     
-    local filterText = searchBox.Text:lower()
+    local filterText = searchBoxTP.Text:lower()
     local itemLO = 0
     for _, p in ipairs(plrs) do
         if p ~= LocalPlayer then
@@ -1175,14 +1169,302 @@ local function UpdatePlayerList()
     end
 end
 
-searchBox:GetPropertyChangedSignal("Text"):Connect(UpdatePlayerList)
+searchBoxTP:GetPropertyChangedSignal("Text"):Connect(UpdatePlayerList)
 Players.PlayerAdded:Connect(UpdatePlayerList); Players.PlayerRemoving:Connect(UpdatePlayerList); UpdatePlayerList()
 
--- LÓGICA DE AIMBOT E VERIFICAÇÕES
+-- ABA BAN PLAYER
+LO = 0; SH(bp, "BAN PLAYER / LANÇAR CARRO")
+
+local searchBoxBan = Instance.new("TextBox", bp)
+searchBoxBan.Size = UDim2.new(1, 0, 0, 26)
+searchBoxBan.LayoutOrder = LO; LO = LO + 1
+searchBoxBan.BackgroundColor3 = Color3.fromRGB(35, 35, 45)
+searchBoxBan.PlaceholderText = "Procurar player..."
+searchBoxBan.Text = ""
+searchBoxBan.TextColor3 = Color3.fromRGB(255, 255, 255)
+searchBoxBan.PlaceholderColor3 = Color3.fromRGB(150, 150, 150)
+searchBoxBan.Font = Enum.Font.Gotham
+searchBoxBan.TextSize = 11
+searchBoxBan.ClearTextOnFocus = false
+searchBoxBan.BorderSizePixel = 0
+Instance.new("UICorner", searchBoxBan).CornerRadius = UDim.new(0, 6)
+
+local playerScrollBan = Instance.new("ScrollingFrame", bp)
+playerScrollBan.Size = UDim2.new(1, 0, 0, 200)
+playerScrollBan.LayoutOrder = LO; LO = LO + 1
+playerScrollBan.BackgroundColor3 = Color3.fromRGB(20, 20, 26)
+playerScrollBan.BorderSizePixel = 0
+playerScrollBan.CanvasSize = UDim2.new(0, 0, 0, 0)
+playerScrollBan.ScrollingDirection = Enum.ScrollingDirection.Y
+playerScrollBan.ScrollBarThickness = 4
+Instance.new("UICorner", playerScrollBan).CornerRadius = UDim.new(0, 6)
+
+local banListLayout = Instance.new("UIListLayout", playerScrollBan)
+banListLayout.Padding = UDim.new(0, 4)
+banListLayout.SortOrder = Enum.SortOrder.LayoutOrder
+
+local targetPlayerName = nil
+local spectatePlayerName = nil
+local originalCFrame = nil
+
+local function atualizarListaBan()
+    for _, child in pairs(playerScrollBan:GetChildren()) do
+        if child:IsA("Frame") then child:Destroy() end
+    end
+    
+    local filtroText = searchBoxBan.Text:lower()
+    local playerCount = 0
+    
+    for _, p in pairs(Players:GetPlayers()) do
+        if p ~= LocalPlayer then
+            local pNameLower = p.Name:lower()
+            if filtroText == "" or string.sub(pNameLower, 1, #filtroText) == filtroText or string.find(pNameLower, filtroText) then
+                playerCount = playerCount + 1
+                
+                local pFrame = Instance.new("Frame")
+                pFrame.Size = UDim2.new(1, 0, 0, 26)
+                pFrame.BackgroundColor3 = Color3.fromRGB(40, 40, 50)
+                pFrame.BorderSizePixel = 0
+                pFrame.Parent = playerScrollBan
+                Instance.new("UICorner", pFrame).CornerRadius = UDim.new(0, 4)
+                
+                local pLabel = Instance.new("TextLabel")
+                pLabel.Size = UDim2.new(1, -115, 1, 0)
+                pLabel.Position = UDim2.new(0, 6, 0, 0)
+                pLabel.BackgroundTransparency = 1
+                pLabel.Text = p.Name
+                pLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+                pLabel.TextXAlignment = Enum.TextXAlignment.Left
+                pLabel.Font = Enum.Font.Gotham
+                pLabel.TextSize = 11
+                pLabel.Parent = pFrame
+                
+                local toggleTargetBtn = Instance.new("TextButton")
+                toggleTargetBtn.Size = UDim2.new(0, 52, 0, 20)
+                toggleTargetBtn.Position = UDim2.new(1, -110, 0.5, -10)
+                toggleTargetBtn.Font = Enum.Font.GothamBold
+                toggleTargetBtn.TextSize = 10
+                Instance.new("UICorner", toggleTargetBtn).CornerRadius = UDim.new(0, 4)
+                
+                if targetPlayerName == p.Name then
+                    toggleTargetBtn.BackgroundColor3 = Color3.fromRGB(0, 255, 0)
+                    toggleTargetBtn.Text = "ON"
+                    toggleTargetBtn.TextColor3 = Color3.fromRGB(0, 0, 0)
+                else
+                    toggleTargetBtn.BackgroundColor3 = Color3.fromRGB(150, 50, 50)
+                    toggleTargetBtn.Text = "OFF"
+                    toggleTargetBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+                end
+                
+                toggleTargetBtn.MouseButton1Click:Connect(function()
+                    if targetPlayerName == p.Name then
+                        local char = LocalPlayer.Character
+                        if char and char:FindFirstChild("Humanoid") then
+                            local seat = char.Humanoid.SeatPart
+                            if seat and seat.Parent then
+                                local vehicleModel = seat.Parent
+                                if vehicleModel:IsA("Model") and vehicleModel.PrimaryPart and originalCFrame then
+                                    vehicleModel:SetPrimaryPartCFrame(originalCFrame)
+                                end
+                            end
+                        end
+                        targetPlayerName = nil
+                        originalCFrame = nil
+                    else
+                        local char = LocalPlayer.Character
+                        if char and char:FindFirstChild("Humanoid") then
+                            local seat = char.Humanoid.SeatPart
+                            if seat and seat.Parent then
+                                local vehicleModel = seat.Parent
+                                if vehicleModel:IsA("Model") and vehicleModel.PrimaryPart then
+                                    originalCFrame = vehicleModel:GetPrimaryPartCFrame()
+                                end
+                            end
+                        end
+                        targetPlayerName = p.Name
+                    end
+                    atualizarListaBan()
+                end)
+                toggleTargetBtn.Parent = pFrame
+                
+                local toggleSpectateBtn = Instance.new("TextButton")
+                toggleSpectateBtn.Size = UDim2.new(0, 52, 0, 20)
+                toggleSpectateBtn.Position = UDim2.new(1, -54, 0.5, -10)
+                toggleSpectateBtn.Font = Enum.Font.GothamBold
+                toggleSpectateBtn.TextSize = 10
+                Instance.new("UICorner", toggleSpectateBtn).CornerRadius = UDim.new(0, 4)
+                
+                if spectatePlayerName == p.Name then
+                    toggleSpectateBtn.BackgroundColor3 = Color3.fromRGB(0, 255, 0)
+                    toggleSpectateBtn.Text = "ESP ON"
+                    toggleSpectateBtn.TextColor3 = Color3.fromRGB(0, 0, 0)
+                else
+                    toggleSpectateBtn.BackgroundColor3 = Color3.fromRGB(60, 60, 150)
+                    toggleSpectateBtn.Text = "ESP OFF"
+                    toggleSpectateBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+                end
+                
+                toggleSpectateBtn.MouseButton1Click:Connect(function()
+                    if spectatePlayerName == p.Name then
+                        spectatePlayerName = nil
+                        if LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Humanoid") then
+                            Camera.CameraSubject = LocalPlayer.Character.Humanoid
+                        end
+                    else
+                        spectatePlayerName = p.Name
+                    end
+                    atualizarListaBan()
+                end)
+                toggleSpectateBtn.Parent = pFrame
+            end
+        end
+    end
+    
+    playerScrollBan.CanvasSize = UDim2.new(0, 0, 0, playerCount * 30)
+end
+
+searchBoxBan:GetPropertyChangedSignal("Text"):Connect(atualizarListaBan)
+task.spawn(function()
+    while true do
+        task.wait(2)
+        atualizarListaBan()
+    end
+end)
+atualizarListaBan()
+
+-- Loop principal atualizado
+RunService.RenderStepped:Connect(function()
+    if targetPlayerName then
+        local targetP = Players:FindFirstChild(targetPlayerName)
+        if targetP and targetP.Character and targetP.Character:FindFirstChild("HumanoidRootPart") then
+            local char = LocalPlayer.Character
+            if char and char:FindFirstChild("HumanoidRootPart") then
+                local seat = char.Humanoid.SeatPart
+                if seat and seat.Parent then
+                    local vehicleModel = seat.Parent
+                    if vehicleModel:IsA("Model") and vehicleModel.PrimaryPart then
+                        local targetRoot = targetP.Character.HumanoidRootPart
+                        local targetPos = targetRoot.Position
+                        local climbSpeed = 1.5
+                        local targetCFrame = CFrame.new(targetPos.X, targetPos.Y - 2 + (tick() * climbSpeed) % 30, targetPos.Z)
+                        vehicleModel:SetPrimaryPartCFrame(targetCFrame)
+                    end
+                end
+            end
+        end
+    end
+    
+    if spectatePlayerName then
+        local targetP = Players:FindFirstChild(spectatePlayerName)
+        if targetP and targetP.Character and targetP.Character:FindFirstChild("Humanoid") then
+            Camera.CameraSubject = targetP.Character.Humanoid
+        else
+            spectatePlayerName = nil
+            if LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Humanoid") then
+                Camera.CameraSubject = LocalPlayer.Character.Humanoid
+            end
+            atualizarListaBan()
+        end
+    end
+
+    if isFlyModeEnabled then
+        local char = LocalPlayer.Character
+        if char then
+            local root = char:FindFirstChild("HumanoidRootPart")
+            if root then
+                local camCFrame = Camera.CFrame
+                local moveDir = Vector3.new(0, 0, 0)
+                if isHoldingUp then moveDir = moveDir + Vector3.new(0, 1, 0) end
+                if isHoldingFwd then moveDir = moveDir + camCFrame.LookVector end
+                root.CFrame = root.CFrame + (moveDir * (movementSpeed * 0.05))
+            end
+        end
+    end
+
+    if freezeEnabled and freezePosition then
+        local root = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
+        if root then root.CFrame = CFrame.new(freezePosition) end
+    end
+end)
+
+-- Lógica de Aimbot e FOV Corrigida com Mudança de Cor (Verde/Vermelho)
 local function IV(tp, ch) if not C.WC then return true end; local o = Camera.CFrame.Position; local d = (tp - o); local p = RaycastParams.new(); p.FilterType = Enum.RaycastFilterType.Blacklist; local ig = {LocalPlayer.Character}; local h = ch:FindFirstChildOfClass("Humanoid"); if h and h.SeatPart then table.insert(ig, h.SeatPart); if h.SeatPart.Parent then table.insert(ig, h.SeatPart.Parent) end end; p.FilterDescendantsInstances = ig; local r = workspace:Raycast(o, d, p); if r then return r.Instance:IsDescendantOf(ch) end; return false end
 local function GTP(ch) local h = ch:FindFirstChildOfClass("Humanoid"); if h and h.SeatPart then return h.SeatPart.Position + ((h.SeatPart.AssemblyLinearVelocity or Vector3.zero) * 0.15) end; if C.TP == "Head" then local hd = ch:FindFirstChild("Head"); if hd then return hd.Position end elseif C.TP == "UpperTorso" then local ut = ch:FindFirstChild("UpperTorso"); if ut then return ut.Position end; local t = ch:FindFirstChild("Torso"); if t then return t.Position end elseif C.TP == "HumanoidRootPart" then local r = ch:FindFirstChild("HumanoidRootPart"); if r then return r.Position end end; local hd = ch:FindFirstChild("Head"); if hd then return hd.Position end; local ut = ch:FindFirstChild("UpperTorso"); if ut then return ut.Position end; local t = ch:FindFirstChild("Torso"); if t then return t.Position end; local lt = ch:FindFirstChild("LowerTorso"); if lt then return lt.Position end; local r = ch:FindFirstChild("HumanoidRootPart"); if r then return r.Position end; return nil end
-local function GCT() local cl, sh = nil, math.huge; local cn = Vector2.new(Camera.ViewportSize.X / 2, Camera.ViewportSize.Y / 2); local cp = Camera.CFrame.Position; local maxDist = tonumber(C.MD) or 300; for _, pl in ipairs(Players:GetPlayers()) do if pl ~= LocalPlayer and pl.Character then if C.TO and pl.Team == LocalPlayer.Team then continue end; local hm = pl.Character:FindFirstChildOfClass("Humanoid"); local hr = pl.Character:FindFirstChild("HumanoidRootPart"); if not hr or (hr.Position - cp).Magnitude > maxDist then continue end; local ps = GTP(pl.Character); if hm and hm.Health > 0 and ps and IV(ps, pl.Character) then local sc, on = Camera:WorldToViewportPoint(ps); if on then local sp = Vector2.new(sc.X, sc.Y); local df = (sp - cn).Magnitude; local vt = false; if C.FS == "Circle" then vt = df <= math.max(C.FH, C.FB, C.LW, C.RW) else local dx = sp.X - cn.X; local dy = sp.Y - cn.Y; local inWidth = (dx >= 0 and dx <= C.RW) or (dx < 0 and math.abs(dx) <= C.LW); local inHeight = (dy >= 0 and dy <= C.FB) or (dy < 0 and math.abs(dy) <= C.FH); vt = inWidth and inHeight end; if vt and df < sh then sh = df; cl = ps end end end end end; return cl end
 
-RunService.RenderStepped:Connect(function() local lk = false; if C.A then local tg = GCT(); if tg then lk = true; local o = Camera.CFrame.Position; local la = CFrame.new(o, tg); local cr = Camera.CFrame - o; local tr = la - o; Camera.CFrame = CFrame.new(o) * cr:Lerp(tr, C.SM) end end; local fc = lk and Color3.fromRGB(0, 255, 120) or Color3.fromRGB(255, 60, 60); if C.SF then local cn = Vector2.new(Camera.ViewportSize.X / 2, Camera.ViewportSize.Y / 2); if C.FS == "Circle" then Circle.Visible = true; Circle.Radius = math.max(C.FH, C.FB, C.LW, C.RW); Circle.Position = cn; Circle.Color = fc; Square.Visible = false else Square.Visible = true; Square.Size = Vector2.new(C.LW + C.RW, C.FH + C.FB); Square.Position = Vector2.new(cn.X - C.LW, cn.Y - C.FH); Square.Color = fc; Circle.Visible = false end else Circle.Visible = false; Square.Visible = false end; local root = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart"); local hum = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Humanoid"); if root then if freezeEnabled and freezePosition then root.Anchored = true; root.CFrame = CFrame.new(freezePosition); if hum then hum.Sit = false end elseif isFlyModeEnabled then if dynamicFloorPart then dynamicFloorPart.CFrame = root.CFrame * CFrame.new(0, -3, 0) end; local floorY = root.Position.Y - 3 + 0.25; if root.Position.Y < floorY + 2 then root.CFrame = CFrame.new(root.Position.X, floorY + 2, root.Position.Z) end; if isHoldingUp then root.CFrame = root.CFrame + Vector3.new(0, movementSpeed * 0.05, 0) end; if isHoldingFwd then local camLook = Camera.CFrame.LookVector; root.CFrame = root.CFrame + (camLook * movementSpeed * 0.05); local flatLook = Vector3.new(camLook.X, 0, camLook.Z); if flatLook.Magnitude > 0.1 then local targetRotation = math.atan2(flatLook.X, flatLook.Z); root.CFrame = CFrame.new(root.Position) * CFrame.fromOrientation(0, targetRotation, 0) end end end end end)
+local function GCT() 
+    local cl, sh = nil, math.huge
+    local cn = Vector2.new(Camera.ViewportSize.X / 2, Camera.ViewportSize.Y / 2)
+    local cp = Camera.CFrame.Position
+    local maxDist = tonumber(C.MD) or 300
+    
+    for _, pl in ipairs(Players:GetPlayers()) do 
+        if pl ~= LocalPlayer and pl.Character then 
+            if C.TO and pl.Team == LocalPlayer.Team then continue end
+            local hm = pl.Character:FindFirstChildOfClass("Humanoid")
+            local hr = pl.Character:FindFirstChild("HumanoidRootPart")
+            if not hr or (hr.Position - cp).Magnitude > maxDist then continue end
+            
+            local ps = GTP(pl.Character) 
+            if hm and hm.Health > 0 and ps and IV(ps, pl.Character) then 
+                local sc, on = Camera:WorldToViewportPoint(ps)
+                if on then 
+                    local sp = Vector2.new(sc.X, sc.Y)
+                    local df = (sp - cn).Magnitude
+                    local vt = false
+                    
+                    if C.FS == "Circle" then 
+                        vt = df <= C.FH
+                    else 
+                        local dx = math.abs(sp.X - cn.X)
+                        local dy = math.abs(sp.Y - cn.Y)
+                        vt = dx <= (C.LW or 80) and dy <= (C.FH or 80)
+                    end
+                    
+                    if vt and df < sh then 
+                        sh = df
+                        cl = pl 
+                    end 
+                end 
+            end 
+        end 
+    end 
+    return cl 
+end
 
-print("[Painel v20.0] Código completo com Atalho de Algemas e Deitar carregado com sucesso!")
+RunService.RenderStepped:Connect(function() 
+    local cn = Vector2.new(Camera.ViewportSize.X / 2, Camera.ViewportSize.Y / 2)
+    local targetFound = false
+
+    if C.A then 
+        local t = GCT() 
+        if t and t.Character then 
+            targetFound = true
+            local ps = GTP(t.Character) 
+            if ps then 
+                local tc = CFrame.new(Camera.CFrame.Position, ps) 
+                Camera.CFrame = Camera.CFrame:Lerp(tc, math.clamp(C.SM, 0.01, 1)) 
+            end 
+        end 
+    end 
+
+    if C.SF then 
+        local dynamicColor = targetFound and Color3.fromRGB(0, 255, 0) or Color3.fromRGB(255, 0, 0)
+        
+        if C.FS == "Circle" then 
+            Circle.Visible = true
+            Square.Visible = false
+            Circle.Position = cn
+            Circle.Radius = C.FH
+            Circle.Color = dynamicColor
+        else 
+            Square.Visible = true
+            Circle.Visible = false
+            Square.Size = Vector2.new((C.LW or 80) * 2, (C.FH or 80) * 2)
+            Square.Position = Vector2.new(cn.X - (C.LW or 80), cn.Y - (C.FH or 80))
+            Square.Color = dynamicColor
+        end 
+    else 
+        Circle.Visible = false
+        Square.Visible = false 
+    end 
+end)

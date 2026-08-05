@@ -1,4 +1,4 @@
---// DELTA UNIVERSAL v20.0 - VERSÃO FINAL CORRIGIDA E OTIMIZADA + ATALHO DE ALGEMAS
+--// DELTA UNIVERSAL v20.0 - VERSÃO FINAL CORRIGIDA E OTIMIZADA + ATALHO DE ALGEMAS E DEITAR
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
 local Camera = workspace.CurrentCamera
@@ -27,7 +27,7 @@ RunService.RenderStepped:Connect(EB)
 local HUI = LocalPlayer:WaitForChild("PlayerGui")
 if HUI:FindFirstChild("DeltaUniversal") then HUI.DeltaUniversal:Destroy() end
 
--- Limpa resquícios antigos do menu de algema se houver
+-- Limpa resquícios antigos se houver
 if HUI:FindFirstChild("MenuAtalhoAlgema") then
     HUI.MenuAtalhoAlgema:Destroy()
 end
@@ -315,7 +315,7 @@ btnTrava.TextSize = 12
 btnTrava.Font = Enum.Font.GothamBold
 Instance.new("UICorner", btnTrava).CornerRadius = UDim.new(0, 6)
 
--- Botão Rosa Pequeno e Redondo
+-- Botão Rosa Pequeno e Redondo (Algema)
 local btnRosa = Instance.new("TextButton", Gui)
 btnRosa.Name = "BtnRosaAlgema"
 btnRosa.Size = UDim2.new(0, 45, 0, 45) 
@@ -358,13 +358,11 @@ btnTrava.MouseButton1Click:Connect(function()
     end
 end)
 
--- Nova Ação Inteligente e Abrangente para o Botão Rosa
 btnRosa.MouseButton1Click:Connect(function()
     pcall(function()
         local currentGui = Players.LocalPlayer:WaitForChild("PlayerGui")
         local executed = false
 
-        -- Tentativa 1: Varredura por qualquer botão com nome relacionado a algema na tela
         for _, gui in ipairs(currentGui:GetChildren()) do
             if gui:IsA("ScreenGui") then
                 local algemarBtn = gui:FindFirstChild("Algemar", true) or gui:FindFirstChild("Cuff", true)
@@ -387,7 +385,6 @@ btnRosa.MouseButton1Click:Connect(function()
             end
         end
 
-        -- Tentativa 2: Busca por ProximityPrompt de algemar próximo
         if not executed then
             local char = LocalPlayer.Character
             local hrp = char and char:FindFirstChild("HumanoidRootPart")
@@ -405,6 +402,124 @@ btnRosa.MouseButton1Click:Connect(function()
         
         if not executed then
             warn("[Atalho Algema] Nenhum botão de algemar válido foi encontrado na tela no momento.")
+        end
+    end)
+end)
+
+-- ATALHO DE DEITAR (NOVO)
+LO = LO + 1; SH(sp, "ATALHO DEITAR")
+
+LO = LO + 1
+local btnDeitarToggle = Instance.new("TextButton", sp)
+btnDeitarToggle.Size = UDim2.new(1, 0, 0, 30)
+btnDeitarToggle.LayoutOrder = LO
+btnDeitarToggle.BackgroundColor3 = Color3.fromRGB(200, 50, 50)
+btnDeitarToggle.Text = "Deitar: OFF ❌"
+btnDeitarToggle.TextColor3 = Color3.fromRGB(255, 255, 255)
+btnDeitarToggle.TextSize = 12
+btnDeitarToggle.Font = Enum.Font.GothamBold
+Instance.new("UICorner", btnDeitarToggle).CornerRadius = UDim.new(0, 6)
+
+LO = LO + 1
+local btnDeitarTrava = Instance.new("TextButton", sp)
+btnDeitarTrava.Size = UDim2.new(1, 0, 0, 30)
+btnDeitarTrava.LayoutOrder = LO
+btnDeitarTrava.BackgroundColor3 = Color3.fromRGB(70, 70, 70)
+btnDeitarTrava.Text = "Travar Deitar: OFF 🔓"
+btnDeitarTrava.TextColor3 = Color3.fromRGB(255, 255, 255)
+btnDeitarTrava.TextSize = 12
+btnDeitarTrava.Font = Enum.Font.GothamBold
+Instance.new("UICorner", btnDeitarTrava).CornerRadius = UDim.new(0, 6)
+
+-- Botão Flutuante de Deitar (Roxo / Magenta)
+local btnDeitarFlutuante = Instance.new("TextButton", Gui)
+btnDeitarFlutuante.Name = "BtnDeitarFlutuante"
+btnDeitarFlutuante.Size = UDim2.new(0, 45, 0, 45) 
+btnDeitarFlutuante.Position = UDim2.new(0.5, 30, 0.7, 0) 
+btnDeitarFlutuante.BackgroundColor3 = Color3.fromRGB(138, 43, 226) -- Roxo
+btnDeitarFlutuante.Text = "🛌"
+btnDeitarFlutuante.TextSize = 18
+btnDeitarFlutuante.Visible = false
+btnDeitarFlutuante.Active = true
+btnDeitarFlutuante.Draggable = true 
+btnDeitarFlutuante.ZIndex = 150
+Instance.new("UICorner", btnDeitarFlutuante).CornerRadius = UDim.new(1, 0)
+
+local deitarLigado = false
+local deitarTravado = false
+
+btnDeitarToggle.MouseButton1Click:Connect(function()
+    deitarLigado = not deitarLigado
+    if deitarLigado then
+        btnDeitarToggle.Text = "Deitar: ON ✔️"
+        btnDeitarToggle.BackgroundColor3 = Color3.fromRGB(40, 167, 69)
+        btnDeitarFlutuante.Visible = true
+    else
+        btnDeitarToggle.Text = "Deitar: OFF ❌"
+        btnDeitarToggle.BackgroundColor3 = Color3.fromRGB(200, 50, 50)
+        btnDeitarFlutuante.Visible = false
+    end
+end)
+
+btnDeitarTrava.MouseButton1Click:Connect(function()
+    deitarTravado = not deitarTravado
+    if deitarTravado then
+        btnDeitarTrava.Text = "Travar Deitar: ON 🔒"
+        btnDeitarTrava.BackgroundColor3 = Color3.fromRGB(217, 130, 43)
+        btnDeitarFlutuante.Draggable = false
+    else
+        btnDeitarTrava.Text = "Travar Deitar: OFF 🔓"
+        btnDeitarTrava.BackgroundColor3 = Color3.fromRGB(70, 70, 70)
+        btnDeitarFlutuante.Draggable = true
+    end
+end)
+
+btnDeitarFlutuante.MouseButton1Click:Connect(function()
+    pcall(function()
+        local currentGui = Players.LocalPlayer:WaitForChild("PlayerGui")
+        local executed = false
+
+        -- Tentativa 1: Varredura por botões de deitar na tela
+        for _, gui in ipairs(currentGui:GetChildren()) do
+            if gui:IsA("ScreenGui") then
+                local deitarBtn = gui:FindFirstChild("Deitar", true) or gui:FindFirstChild("Sleep", true) or gui:FindFirstChild("Deit", true)
+                if deitarBtn and deitarBtn:IsA("GuiButton") then
+                    if typeof(getconnections) == "function" then
+                        for _, conexao in ipairs(getconnections(deitarBtn.MouseButton1Click)) do
+                            conexao:Fire()
+                            executed = true
+                        end
+                        for _, conexao in ipairs(getconnections(deitarBtn.Activated)) do
+                            conexao:Fire()
+                            executed = true
+                        end
+                    end
+                    if not executed and firesignal then
+                        firesignal(deitarBtn.MouseButton1Click)
+                        executed = true
+                    end
+                end
+            end
+        end
+
+        -- Tentativa 2: Busca por ProximityPrompt de deitar próximo
+        if not executed then
+            local char = LocalPlayer.Character
+            local hrp = char and char:FindFirstChild("HumanoidRootPart")
+            if hrp then
+                for _, obj in ipairs(workspace:GetDescendants()) do
+                    if obj:IsA("ProximityPrompt") and (obj.ActionText:lower():find("deitar") or obj.ObjectText:lower():find("deitar") or obj.ActionText:lower():find("sleep")) then
+                        if (hrp.Position - obj.Parent.Position).Magnitude <= 15 then
+                            fireproximityprompt(obj)
+                            executed = true
+                        end
+                    end
+                end
+            end
+        end
+        
+        if not executed then
+            warn("[Atalho Deitar] Nenhum botão de deitar válido foi encontrado na tela no momento.")
         end
     end)
 end)
@@ -1070,4 +1185,4 @@ local function GCT() local cl, sh = nil, math.huge; local cn = Vector2.new(Camer
 
 RunService.RenderStepped:Connect(function() local lk = false; if C.A then local tg = GCT(); if tg then lk = true; local o = Camera.CFrame.Position; local la = CFrame.new(o, tg); local cr = Camera.CFrame - o; local tr = la - o; Camera.CFrame = CFrame.new(o) * cr:Lerp(tr, C.SM) end end; local fc = lk and Color3.fromRGB(0, 255, 120) or Color3.fromRGB(255, 60, 60); if C.SF then local cn = Vector2.new(Camera.ViewportSize.X / 2, Camera.ViewportSize.Y / 2); if C.FS == "Circle" then Circle.Visible = true; Circle.Radius = math.max(C.FH, C.FB, C.LW, C.RW); Circle.Position = cn; Circle.Color = fc; Square.Visible = false else Square.Visible = true; Square.Size = Vector2.new(C.LW + C.RW, C.FH + C.FB); Square.Position = Vector2.new(cn.X - C.LW, cn.Y - C.FH); Square.Color = fc; Circle.Visible = false end else Circle.Visible = false; Square.Visible = false end; local root = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart"); local hum = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Humanoid"); if root then if freezeEnabled and freezePosition then root.Anchored = true; root.CFrame = CFrame.new(freezePosition); if hum then hum.Sit = false end elseif isFlyModeEnabled then if dynamicFloorPart then dynamicFloorPart.CFrame = root.CFrame * CFrame.new(0, -3, 0) end; local floorY = root.Position.Y - 3 + 0.25; if root.Position.Y < floorY + 2 then root.CFrame = CFrame.new(root.Position.X, floorY + 2, root.Position.Z) end; if isHoldingUp then root.CFrame = root.CFrame + Vector3.new(0, movementSpeed * 0.05, 0) end; if isHoldingFwd then local camLook = Camera.CFrame.LookVector; root.CFrame = root.CFrame + (camLook * movementSpeed * 0.05); local flatLook = Vector3.new(camLook.X, 0, camLook.Z); if flatLook.Magnitude > 0.1 then local targetRotation = math.atan2(flatLook.X, flatLook.Z); root.CFrame = CFrame.new(root.Position) * CFrame.fromOrientation(0, targetRotation, 0) end end end end end)
 
-print("[Painel v20.0] Código completo carregado com sucesso!")
+print("[Painel v20.0] Código completo com Atalho de Algemas e Deitar carregado com sucesso!")

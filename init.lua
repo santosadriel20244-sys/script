@@ -1172,25 +1172,123 @@ end
 searchBoxTP:GetPropertyChangedSignal("Text"):Connect(UpdatePlayerList)
 Players.PlayerAdded:Connect(UpdatePlayerList); Players.PlayerRemoving:Connect(UpdatePlayerList); UpdatePlayerList()
 
--- ABA BAN PLAYER
-LO = 0; SH(bp, "BAN PLAYER / LANÇAR CARRO")
+-- ABA ESPECTAR & CARRO (Substituindo a antiga aba BAN PLAYER)
+LO = 0; SH(bp, "ESPECTAR & CARRO")
 
-local searchBoxBan = Instance.new("TextBox", bp)
-searchBoxBan.Size = UDim2.new(1, 0, 0, 26)
-searchBoxBan.LayoutOrder = LO; LO = LO + 1
-searchBoxBan.BackgroundColor3 = Color3.fromRGB(35, 35, 45)
-searchBoxBan.PlaceholderText = "Procurar player..."
-searchBoxBan.Text = ""
-searchBoxBan.TextColor3 = Color3.fromRGB(255, 255, 255)
-searchBoxBan.PlaceholderColor3 = Color3.fromRGB(150, 150, 150)
-searchBoxBan.Font = Enum.Font.Gotham
-searchBoxBan.TextSize = 11
-searchBoxBan.ClearTextOnFocus = false
-searchBoxBan.BorderSizePixel = 0
-Instance.new("UICorner", searchBoxBan).CornerRadius = UDim.new(0, 6)
+local modoDescidaAtivo = false
+local posicaoInicialAtivacao = nil 
+local conexaoPlayerRemovido = nil 
+local jogadorEspectado = nil
+local jogadorPerseguidoCarro = nil
+local conexaoLoop = nil
+local botoesRegistrados = {}
+
+local ultimoTempoAlternancia = 0
+local estadoToggleAutomatico = true
+
+local BtnDescida = Instance.new("TextButton", bp)
+BtnDescida.Size = UDim2.new(1, 0, 0, 28)
+BtnDescida.LayoutOrder = LO; LO = LO + 1
+BtnDescida.BackgroundColor3 = Color3.fromRGB(180, 50, 50)
+BtnDescida.Text = "Descer e Voltar: OFF"
+BtnDescida.TextColor3 = Color3.fromRGB(255, 255, 255)
+BtnDescida.TextSize = 11
+BtnDescida.Font = Enum.Font.GothamBold
+Instance.new("UICorner", BtnDescida).CornerRadius = UDim.new(0, 6)
+
+BtnDescida.MouseButton1Click:Connect(function()
+    modoDescidaAtivo = not modoDescidaAtivo
+    if modoDescidaAtivo then
+        BtnDescida.Text = "Descer e Voltar: ON"
+        BtnDescida.BackgroundColor3 = Color3.fromRGB(40, 180, 40)
+    else
+        BtnDescida.Text = "Descer e Voltar: OFF"
+        BtnDescida.BackgroundColor3 = Color3.fromRGB(180, 50, 50)
+    end
+end)
+
+local BtnVoltarInicio = Instance.new("TextButton", bp)
+BtnVoltarInicio.Size = UDim2.new(1, 0, 0, 28)
+BtnVoltarInicio.LayoutOrder = LO; LO = LO + 1
+BtnVoltarInicio.BackgroundColor3 = Color3.fromRGB(40, 100, 180)
+BtnVoltarInicio.Text = "Salto e Voltar ao Início"
+BtnVoltarInicio.TextColor3 = Color3.fromRGB(255, 255, 255)
+BtnVoltarInicio.TextSize = 11
+BtnVoltarInicio.Font = Enum.Font.GothamBold
+Instance.new("UICorner", BtnVoltarInicio).CornerRadius = UDim.new(0, 6)
+
+local function resetarConexoes()
+    if conexaoLoop then
+        conexaoLoop:Disconnect()
+        conexaoLoop = nil
+    end
+    if conexaoPlayerRemovido then
+        conexaoPlayerRemovido:Disconnect()
+        conexaoPlayerRemovido = nil
+    end
+    Camera.CameraType = Enum.CameraType.Custom
+    if LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Humanoid") then
+        Camera.CameraSubject = LocalPlayer.Character.Humanoid
+    end
+end
+
+local function pararTudoEVoltar()
+    resetarConexoes()
+    
+    for _, dados in pairs(botoesRegistrados) do
+        dados.bEsp.Text = "Esp: OFF"
+        dados.bEsp.BackgroundColor3 = Color3.fromRGB(180, 50, 50)
+        dados.bCar.Text = "Car: OFF"
+        dados.bCar.BackgroundColor3 = Color3.fromRGB(180, 50, 50)
+    end
+    
+    jogadorEspectado = nil
+    jogadorPerseguidoCarro = nil
+
+    if posicaoInicialAtivacao then
+        local charLocal = LocalPlayer.Character
+        if charLocal then
+            local seat = charLocal:FindFirstChildWhichIsA("Humanoid", true) and charLocal:FindFirstChildWhichIsA("Humanoid", true).SeatPart
+            local objetoParaMover = seat and seat.Parent or charLocal
+
+            local cframeAlto = posicaoInicialAtivacao + Vector3.new(0, 15, 0)
+            
+            if objetoParaMover.PrimaryPart then
+                objetoParaMover:SetPrimaryPartCFrame(cframeAlto)
+            elseif objetoParaMover:FindFirstChild("HumanoidRootPart") then
+                objetoParaMover.HumanoidRootPart.CFrame = cframeAlto
+            end
+
+            task.wait(0.15)
+
+            if objetoParaMover.PrimaryPart then
+                objetoParaMover:SetPrimaryPartCFrame(posicaoInicialAtivacao)
+            elseif objetoParaMover:FindFirstChild("HumanoidRootPart") then
+                objetoParaMover.HumanoidRootPart.CFrame = posicaoInicialAtivacao
+            end
+        end
+    end
+end
+
+BtnVoltarInicio.MouseButton1Click:Connect(function()
+    pararTudoEVoltar()
+end)
+
+local SearchBoxBan = Instance.new("TextBox", bp)
+SearchBoxBan.Size = UDim2.new(1, 0, 0, 26)
+SearchBoxBan.LayoutOrder = LO; LO = LO + 1
+SearchBoxBan.BackgroundColor3 = Color3.fromRGB(35, 35, 45)
+SearchBoxBan.TextColor3 = Color3.fromRGB(255, 255, 255)
+SearchBoxBan.PlaceholderText = "Pesquisar jogador..."
+SearchBoxBan.Text = ""
+SearchBoxBan.TextSize = 11
+SearchBoxBan.Font = Enum.Font.Gotham
+SearchBoxBan.ClearTextOnFocus = false
+SearchBoxBan.BorderSizePixel = 0
+Instance.new("UICorner", SearchBoxBan).CornerRadius = UDim.new(0, 6)
 
 local playerScrollBan = Instance.new("ScrollingFrame", bp)
-playerScrollBan.Size = UDim2.new(1, 0, 0, 200)
+playerScrollBan.Size = UDim2.new(1, 0, 0, 180)
 playerScrollBan.LayoutOrder = LO; LO = LO + 1
 playerScrollBan.BackgroundColor3 = Color3.fromRGB(20, 20, 26)
 playerScrollBan.BorderSizePixel = 0
@@ -1203,170 +1301,212 @@ local banListLayout = Instance.new("UIListLayout", playerScrollBan)
 banListLayout.Padding = UDim.new(0, 4)
 banListLayout.SortOrder = Enum.SortOrder.LayoutOrder
 
-local targetPlayerName = nil
-local spectatePlayerName = nil
-local originalCFrame = nil
+banListLayout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
+    playerScrollBan.CanvasSize = UDim2.new(0, 0, 0, banListLayout.AbsoluteContentSize.Y)
+end)
 
-local function atualizarListaBan()
-    for _, child in pairs(playerScrollBan:GetChildren()) do
-        if child:IsA("Frame") then child:Destroy() end
-    end
-    
-    local filtroText = searchBoxBan.Text:lower()
-    local playerCount = 0
-    
-    for _, p in pairs(Players:GetPlayers()) do
-        if p ~= LocalPlayer then
-            local pNameLower = p.Name:lower()
-            if filtroText == "" or string.sub(pNameLower, 1, #filtroText) == filtroText or string.find(pNameLower, filtroText) then
-                playerCount = playerCount + 1
-                
-                local pFrame = Instance.new("Frame")
-                pFrame.Size = UDim2.new(1, 0, 0, 26)
-                pFrame.BackgroundColor3 = Color3.fromRGB(40, 40, 50)
-                pFrame.BorderSizePixel = 0
-                pFrame.Parent = playerScrollBan
-                Instance.new("UICorner", pFrame).CornerRadius = UDim.new(0, 4)
-                
-                local pLabel = Instance.new("TextLabel")
-                pLabel.Size = UDim2.new(1, -115, 1, 0)
-                pLabel.Position = UDim2.new(0, 6, 0, 0)
-                pLabel.BackgroundTransparency = 1
-                pLabel.Text = p.Name
-                pLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
-                pLabel.TextXAlignment = Enum.TextXAlignment.Left
-                pLabel.Font = Enum.Font.Gotham
-                pLabel.TextSize = 11
-                pLabel.Parent = pFrame
-                
-                local toggleTargetBtn = Instance.new("TextButton")
-                toggleTargetBtn.Size = UDim2.new(0, 52, 0, 20)
-                toggleTargetBtn.Position = UDim2.new(1, -110, 0.5, -10)
-                toggleTargetBtn.Font = Enum.Font.GothamBold
-                toggleTargetBtn.TextSize = 10
-                Instance.new("UICorner", toggleTargetBtn).CornerRadius = UDim.new(0, 4)
-                
-                if targetPlayerName == p.Name then
-                    toggleTargetBtn.BackgroundColor3 = Color3.fromRGB(0, 255, 0)
-                    toggleTargetBtn.Text = "ON"
-                    toggleTargetBtn.TextColor3 = Color3.fromRGB(0, 0, 0)
-                else
-                    toggleTargetBtn.BackgroundColor3 = Color3.fromRGB(150, 50, 50)
-                    toggleTargetBtn.Text = "OFF"
-                    toggleTargetBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
-                end
-                
-                toggleTargetBtn.MouseButton1Click:Connect(function()
-                    if targetPlayerName == p.Name then
-                        local char = LocalPlayer.Character
-                        if char and char:FindFirstChild("Humanoid") then
-                            local seat = char.Humanoid.SeatPart
-                            if seat and seat.Parent then
-                                local vehicleModel = seat.Parent
-                                if vehicleModel:IsA("Model") and vehicleModel.PrimaryPart and originalCFrame then
-                                    vehicleModel:SetPrimaryPartCFrame(originalCFrame)
-                                end
-                            end
-                        end
-                        targetPlayerName = nil
-                        originalCFrame = nil
-                    else
-                        local char = LocalPlayer.Character
-                        if char and char:FindFirstChild("Humanoid") then
-                            local seat = char.Humanoid.SeatPart
-                            if seat and seat.Parent then
-                                local vehicleModel = seat.Parent
-                                if vehicleModel:IsA("Model") and vehicleModel.PrimaryPart then
-                                    originalCFrame = vehicleModel:GetPrimaryPartCFrame()
-                                end
-                            end
-                        end
-                        targetPlayerName = p.Name
-                    end
-                    atualizarListaBan()
-                end)
-                toggleTargetBtn.Parent = pFrame
-                
-                local toggleSpectateBtn = Instance.new("TextButton")
-                toggleSpectateBtn.Size = UDim2.new(0, 52, 0, 20)
-                toggleSpectateBtn.Position = UDim2.new(1, -54, 0.5, -10)
-                toggleSpectateBtn.Font = Enum.Font.GothamBold
-                toggleSpectateBtn.TextSize = 10
-                Instance.new("UICorner", toggleSpectateBtn).CornerRadius = UDim.new(0, 4)
-                
-                if spectatePlayerName == p.Name then
-                    toggleSpectateBtn.BackgroundColor3 = Color3.fromRGB(0, 255, 0)
-                    toggleSpectateBtn.Text = "ESP ON"
-                    toggleSpectateBtn.TextColor3 = Color3.fromRGB(0, 0, 0)
-                else
-                    toggleSpectateBtn.BackgroundColor3 = Color3.fromRGB(60, 60, 150)
-                    toggleSpectateBtn.Text = "ESP OFF"
-                    toggleSpectateBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
-                end
-                
-                toggleSpectateBtn.MouseButton1Click:Connect(function()
-                    if spectatePlayerName == p.Name then
-                        spectatePlayerName = nil
-                        if LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Humanoid") then
-                            Camera.CameraSubject = LocalPlayer.Character.Humanoid
-                        end
-                    else
-                        spectatePlayerName = p.Name
-                    end
-                    atualizarListaBan()
-                end)
-                toggleSpectateBtn.Parent = pFrame
+local function filtrarJogadoresBan(textoDigitado)
+    local termo = string.lower(textoDigitado)
+    for player, dados in pairs(botoesRegistrados) do
+        if player and player.Parent then
+            local nomePlayer = string.lower(player.Name)
+            if termo == "" or string.find(nomePlayer, termo) then
+                dados.frame.Visible = true
+            else
+                dados.frame.Visible = false
             end
         end
     end
-    
-    playerScrollBan.CanvasSize = UDim2.new(0, 0, 0, playerCount * 30)
 end
 
-searchBoxBan:GetPropertyChangedSignal("Text"):Connect(atualizarListaBan)
-task.spawn(function()
-    while true do
-        task.wait(2)
-        atualizarListaBan()
-    end
+SearchBoxBan:GetPropertyChangedSignal("Text"):Connect(function()
+    filtrarJogadoresBan(SearchBoxBan.Text)
 end)
-atualizarListaBan()
+
+local function desativarColisao(objeto)
+    for _, parte in ipairs(objeto:GetDescendants()) do
+        if parte:IsA("BasePart") then
+            parte.CanCollide = false
+        end
+    end
+end
+
+local function criarLinhaBan(player)
+    if player == LocalPlayer then return end
+
+    local Frame = Instance.new("Frame", playerScrollBan)
+    Frame.Size = UDim2.new(1, 0, 0, 26)
+    Frame.BackgroundColor3 = Color3.fromRGB(40, 40, 50)
+    Frame.BorderSizePixel = 0
+    Instance.new("UICorner", Frame).CornerRadius = UDim.new(0, 4)
+
+    local Nome = Instance.new("TextLabel", Frame)
+    Nome.Size = UDim2.new(1, -115, 1, 0)
+    Nome.Position = UDim2.new(0, 6, 0, 0)
+    Nome.BackgroundTransparency = 1
+    Nome.Text = player.Name
+    Nome.TextColor3 = Color3.fromRGB(255, 255, 255)
+    Nome.TextSize = 11
+    Nome.TextXAlignment = Enum.TextXAlignment.Left
+    Nome.Font = Enum.Font.Gotham
+
+    local BEsp = Instance.new("TextButton", Frame)
+    BEsp.Size = UDim2.new(0, 52, 0, 20)
+    BEsp.Position = UDim2.new(1, -110, 0.5, -10)
+    BEsp.BackgroundColor3 = Color3.fromRGB(180, 50, 50)
+    BEsp.Text = "Esp: OFF"
+    BEsp.TextColor3 = Color3.fromRGB(255, 255, 255)
+    BEsp.TextSize = 10
+    BEsp.Font = Enum.Font.GothamBold
+    Instance.new("UICorner", BEsp).CornerRadius = UDim.new(0, 4)
+
+    local BCar = Instance.new("TextButton", Frame)
+    BCar.Size = UDim2.new(0, 52, 0, 20)
+    BCar.Position = UDim2.new(1, -54, 0.5, -10)
+    BCar.BackgroundColor3 = Color3.fromRGB(180, 50, 50)
+    BCar.Text = "Car: OFF"
+    BCar.TextColor3 = Color3.fromRGB(255, 255, 255)
+    BCar.TextSize = 10
+    BCar.Font = Enum.Font.GothamBold
+    Instance.new("UICorner", BCar).CornerRadius = UDim.new(0, 4)
+
+    BEsp.MouseButton1Click:Connect(function()
+        for _, dados in pairs(botoesRegistrados) do
+            dados.bEsp.Text = "Esp: OFF"
+            dados.bEsp.BackgroundColor3 = Color3.fromRGB(180, 50, 50)
+            dados.bCar.Text = "Car: OFF"
+            dados.bCar.BackgroundColor3 = Color3.fromRGB(180, 50, 50)
+        end
+
+        if jogadorEspectado == player then
+            resetarConexoes()
+            jogadorEspectado = nil
+            jogadorPerseguidoCarro = nil
+        else
+            resetarConexoes()
+            jogadorEspectado = player
+            jogadorPerseguidoCarro = nil
+
+            BEsp.Text = "Esp: ON"
+            BEsp.BackgroundColor3 = Color3.fromRGB(40, 180, 40)
+
+            conexaoLoop = RunService.RenderStepped:Connect(function()
+                if player.Character and player.Character:FindFirstChild("Humanoid") then
+                    Camera.CameraSubject = player.Character.Humanoid
+                end
+            end)
+        end
+    end)
+
+    BCar.MouseButton1Click:Connect(function()
+        for _, dados in pairs(botoesRegistrados) do
+            dados.bEsp.Text = "Esp: OFF"
+            dados.bEsp.BackgroundColor3 = Color3.fromRGB(180, 50, 50)
+            dados.bCar.Text = "Car: OFF"
+            dados.bCar.BackgroundColor3 = Color3.fromRGB(180, 50, 50)
+        end
+
+        if jogadorPerseguidoCarro == player then
+            pararTudoEVoltar()
+        else
+            resetarConexoes()
+            jogadorPerseguidoCarro = player
+            jogadorEspectado = nil
+            ultimoTempoAlternancia = tick()
+            estadoToggleAutomatico = true
+
+            local charLocal = LocalPlayer.Character
+            if charLocal then
+                local seat = charLocal:FindFirstChildWhichIsA("Humanoid", true) and charLocal:FindFirstChildWhichIsA("Humanoid", true).SeatPart
+                local objetoParaMover = seat and seat.Parent or charLocal
+                
+                if objetoParaMover.PrimaryPart then
+                    posicaoInicialAtivacao = objetoParaMover.PrimaryPart.CFrame
+                elseif objetoParaMover:FindFirstChild("HumanoidRootPart") then
+                    posicaoInicialAtivacao = objetoParaMover.HumanoidRootPart.CFrame
+                end
+
+                local cframePulo = posicaoInicialAtivacao + Vector3.new(0, 6, 0)
+                if objetoParaMover.PrimaryPart then
+                    objetoParaMover:SetPrimaryPartCFrame(cframePulo)
+                elseif objetoParaMover:FindFirstChild("HumanoidRootPart") then
+                    objetoParaMover.HumanoidRootPart.CFrame = cframePulo
+                end
+            end
+
+            BCar.Text = "Car: ON"
+            BCar.BackgroundColor3 = Color3.fromRGB(40, 180, 40)
+
+            conexaoPlayerRemovido = Players.PlayerRemoving:Connect(function(playerSaindo)
+                if playerSaindo == player then
+                    pararTudoEVoltar()
+                end
+            end)
+
+            conexaoLoop = RunService.Heartbeat:Connect(function()
+                local charLocal = LocalPlayer.Character
+                if not charLocal then return end
+
+                local seat = charLocal:FindFirstChildWhichIsA("Humanoid", true) and charLocal:FindFirstChildWhichIsA("Humanoid", true).SeatPart
+                local objetoParaMover = seat and seat.Parent or charLocal
+
+                desativarColisao(objetoParaMover)
+
+                if tick() - ultimoTempoAlternancia >= 3.0 then
+                    ultimoTempoAlternancia = tick()
+                    estadoToggleAutomatico = not estadoToggleAutomatico
+                end
+
+                if player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
+                    local alvoCFrame = player.Character.HumanoidRootPart.CFrame
+                    local deslocamentoAltura = -10
+
+                    if modoDescidaAtivo and estadoToggleAutomatico then
+                        deslocamentoAltura = -50
+                    else
+                        deslocamentoAltura = -10
+                    end
+
+                    local cframeFinal = alvoCFrame * CFrame.Angles(math.rad(-100), 0, 0) + Vector3.new(0, deslocamentoAltura, 0)
+                    
+                    if objetoParaMover.PrimaryPart then
+                        objetoParaMover:SetPrimaryPartCFrame(cframeFinal)
+                    elseif objetoParaMover:FindFirstChild("HumanoidRootPart") then
+                        objetoParaMover.HumanoidRootPart.CFrame = cframeFinal
+                    end
+                end
+            end)
+        end
+    end)
+
+    botoesRegistrados[player] = {
+        frame = Frame,
+        bEsp = BEsp,
+        bCar = BCar
+    }
+
+    filtrarJogadoresBan(SearchBoxBan.Text)
+end
+
+local function removerLinhaBan(player)
+    if botoesRegistrados[player] then
+        if jogadorEspectado == player or jogadorPerseguidoCarro == player then
+            pararTudoEVoltar()
+        end
+        botoesRegistrados[player].frame:Destroy()
+        botoesRegistrados[player] = nil
+    end
+end
+
+for _, p in ipairs(Players:GetPlayers()) do
+    criarLinhaBan(p)
+end
+
+Players.PlayerAdded:Connect(criarLinhaBan)
+Players.PlayerRemoving:Connect(removerLinhaBan)
 
 -- Loop principal atualizado
 RunService.RenderStepped:Connect(function()
-    if targetPlayerName then
-        local targetP = Players:FindFirstChild(targetPlayerName)
-        if targetP and targetP.Character and targetP.Character:FindFirstChild("HumanoidRootPart") then
-            local char = LocalPlayer.Character
-            if char and char:FindFirstChild("HumanoidRootPart") then
-                local seat = char.Humanoid.SeatPart
-                if seat and seat.Parent then
-                    local vehicleModel = seat.Parent
-                    if vehicleModel:IsA("Model") and vehicleModel.PrimaryPart then
-                        local targetRoot = targetP.Character.HumanoidRootPart
-                        local targetPos = targetRoot.Position
-                        local climbSpeed = 1.5
-                        local targetCFrame = CFrame.new(targetPos.X, targetPos.Y - 2 + (tick() * climbSpeed) % 30, targetPos.Z)
-                        vehicleModel:SetPrimaryPartCFrame(targetCFrame)
-                    end
-                end
-            end
-        end
-    end
-    
-    if spectatePlayerName then
-        local targetP = Players:FindFirstChild(spectatePlayerName)
-        if targetP and targetP.Character and targetP.Character:FindFirstChild("Humanoid") then
-            Camera.CameraSubject = targetP.Character.Humanoid
-        else
-            spectatePlayerName = nil
-            if LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Humanoid") then
-                Camera.CameraSubject = LocalPlayer.Character.Humanoid
-            end
-            atualizarListaBan()
-        end
-    end
-
     if isFlyModeEnabled then
         local char = LocalPlayer.Character
         if char then

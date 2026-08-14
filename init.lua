@@ -31,11 +31,12 @@ if HUI:FindFirstChild("MenuAtalhoAlgema") then
     HUI.MenuAtalhoAlgema:Destroy()
 end
 
-local C = { A=false, TO=false, WC=false, SF=false, TP="HumanoidRootPart", SM=0.4, MD=300, FS="Square", FH=80, FB=80, LW=30, RW=30 }
+-- CONFIGURAÇÕES INICIAIS MODIFICADAS (ESP Size = 2, Aimbot FOV = 40, Suavidade = 0.5, Formato = Circle)
+local C = { A=false, TO=false, WC=false, SF=false, TP="HumanoidRootPart", SM=0.5, MD=300, FS="Circle", FH=40, FB=40, LW=40, RW=40 }
 local Circle = Drawing.new("Circle"); Circle.Thickness = 2; Circle.Filled = false; Circle.Visible = false; Circle.Color = Color3.fromRGB(255, 0, 0)
 local Square = Drawing.new("Square"); Square.Thickness = 2; Square.Filled = false; Square.Visible = false; Square.Color = Color3.fromRGB(255, 0, 0)
 
-local espSize = 0.8; local espTransparency = 0.4; local espEnabled = true; local espData = {}
+local espSize = 2; local espTransparency = 0.4; local espEnabled = true; local espData = {}
 local function createESP(p) 
     if p == LocalPlayer then return end 
     local dot = Drawing.new("Circle"); dot.Filled = true; dot.Thickness = 0; dot.Transparency = espTransparency; dot.Visible = false 
@@ -232,33 +233,33 @@ local ap = CC("AIMBOT", true); local ep = CC("ESP", false); local sp = CC("SINTO
 local ip = CC("INTERAGIR", false); local cp = CC("CARRO", false); local tp = CC("TLPRT", false)
 local bp = CC("BAN PLAYER", false)
 
--- ABA AIMBOT
+-- ABA AIMBOT (Atualizado: FOV Raio 40, Suavidade 0.5, Formato Circle por padrão)
 LO = 0; SH(ap, "CORE"); TG(ap, "Aimbot", false, function(v) C.A = v end); TG(ap, "Mostrar FOV", false, function(v) C.SF = v end)
-IB(ap, "Raio / Altura", 80, function(v) C.FH = v; C.FB = v end)
-IB(ap, "Largura", 80, function(v) C.LW = v; C.RW = v end)
+IB(ap, "Raio / Altura", 40, function(v) C.FH = v; C.FB = v end)
+IB(ap, "Largura", 40, function(v) C.LW = v; C.RW = v end)
 local btnSquare, btnCircle
 local function updateFormatButtons(selected) 
     C.FS = selected; local ac = Color3.fromRGB(0, 160, 100); local ic = Color3.fromRGB(28, 28, 36)
     if btnSquare then btnSquare.BackgroundColor3 = selected == "Square" and ac or ic end
     if btnCircle then btnCircle.BackgroundColor3 = selected == "Circle" and ac or ic end 
 end
-btnSquare = AB(ap, "FORMATO: QUADRADO", Color3.fromRGB(0, 160, 100), function() updateFormatButtons("Square") end)
-btnCircle = AB(ap, "FORMATO: CÍRCULO", Color3.fromRGB(28, 28, 36), function() updateFormatButtons("Circle") end)
+btnSquare = AB(ap, "FORMATO: QUADRADO", Color3.fromRGB(28, 28, 36), function() updateFormatButtons("Square") end)
+btnCircle = AB(ap, "FORMATO: CÍRCULO", Color3.fromRGB(0, 160, 100), function() updateFormatButtons("Circle") end)
 TG(ap, "Team Only", false, function(v) C.TO = v end); TG(ap, "Wall Check", false, function(v) C.WC = v end)
-SH(ap, "PRECISÃO"); IB(ap, "Suavidade", 0.4, function(v) C.SM = v end); IB(ap, "Distância Máx", 300, function(v) C.MD = v end)
+SH(ap, "PRECISÃO"); IB(ap, "Suavidade", 0.5, function(v) C.SM = v end); IB(ap, "Distância Máx", 300, function(v) C.MD = v end)
 local btnHRP, btnHead, btnTorso
 local function updateTargetButtons(selected) C.TP = selected; local ac = Color3.fromRGB(0, 160, 100); local ic = Color3.fromRGB(35, 35, 45); if btnHRP then btnHRP.BackgroundColor3 = selected == "HumanoidRootPart" and ac or ic end; if btnHead then btnHead.BackgroundColor3 = selected == "Head" and ac or ic end; if btnTorso then btnTorso.BackgroundColor3 = selected == "UpperTorso" and ac or ic end end
 btnHRP = AB(ap, "Mirar em: HumanoidRootPart", Color3.fromRGB(0, 160, 100), function() updateTargetButtons("HumanoidRootPart") end)
 btnHead = AB(ap, "Mirar em: Head", Color3.fromRGB(35, 35, 45), function() updateTargetButtons("Head") end)
 btnTorso = AB(ap, "Mirar em: Torso", Color3.fromRGB(35, 35, 45), function() updateTargetButtons("UpperTorso") end)
 
--- ABA ESP
+-- ABA ESP (Atualizado: Tamanho padrão = 2)
 LO = 0; SH(ep, "CONTROLES")
 
 LO = LO + 1
 local epRow1 = Instance.new("Frame", ep); epRow1.Size = UDim2.new(1, 0, 0, 32); epRow1.BackgroundTransparency = 1; epRow1.LayoutOrder = LO
 local espToggleBtn = Instance.new("TextButton", epRow1); espToggleBtn.Size = UDim2.new(0.58, 0, 1, 0); espToggleBtn.Text = "LIGADO"; espToggleBtn.BackgroundColor3 = Color3.fromRGB(0, 200, 0); espToggleBtn.TextColor3 = Color3.new(1, 1, 1); espToggleBtn.Font = Enum.Font.GothamBold; espToggleBtn.TextSize = 12; espToggleBtn.BorderSizePixel = 0; Instance.new("UICorner", espToggleBtn).CornerRadius = UDim.new(0, 6)
-local espSizeBox = Instance.new("TextBox", epRow1); espSizeBox.Size = UDim2.new(0.38, 0, 1, 0); espSizeBox.Position = UDim2.new(0.62, 0, 0, 0); espSizeBox.Text = "0.8"; espSizeBox.PlaceholderText = "Tam"; espSizeBox.BackgroundColor3 = Color3.fromRGB(40, 40, 50); espSizeBox.TextColor3 = Color3.new(1, 1, 1); espSizeBox.Font = Enum.Font.Gotham; espSizeBox.TextSize = 12; espSizeBox.ClearTextOnFocus = false; espSizeBox.BorderSizePixel = 0; Instance.new("UICorner", espSizeBox).CornerRadius = UDim.new(0, 6)
+local espSizeBox = Instance.new("TextBox", epRow1); espSizeBox.Size = UDim2.new(0.38, 0, 1, 0); espSizeBox.Position = UDim2.new(0.62, 0, 0, 0); espSizeBox.Text = "2"; espSizeBox.PlaceholderText = "Tam"; espSizeBox.BackgroundColor3 = Color3.fromRGB(40, 40, 50); espSizeBox.TextColor3 = Color3.new(1, 1, 1); espSizeBox.Font = Enum.Font.Gotham; espSizeBox.TextSize = 12; espSizeBox.ClearTextOnFocus = false; espSizeBox.BorderSizePixel = 0; Instance.new("UICorner", espSizeBox).CornerRadius = UDim.new(0, 6)
 
 LO = LO + 1
 local epRow2 = Instance.new("Frame", ep); epRow2.Size = UDim2.new(1, 0, 0, 32); epRow2.BackgroundTransparency = 1; epRow2.LayoutOrder = LO
@@ -266,7 +267,7 @@ local rejoinBtn = Instance.new("TextButton", epRow2); rejoinBtn.Size = UDim2.new
 local espTransBox = Instance.new("TextBox", epRow2); espTransBox.Size = UDim2.new(0.38, 0, 1, 0); espTransBox.Position = UDim2.new(0.62, 0, 0, 0); espTransBox.Text = "0.4"; espTransBox.PlaceholderText = "Trans"; espTransBox.BackgroundColor3 = Color3.fromRGB(40, 40, 50); espTransBox.TextColor3 = Color3.new(1, 1, 1); espTransBox.Font = Enum.Font.Gotham; espTransBox.TextSize = 12; espTransBox.ClearTextOnFocus = false; espTransBox.BorderSizePixel = 0; Instance.new("UICorner", espTransBox).CornerRadius = UDim.new(0, 6)
 
 LO = LO + 1
-local espStatus = Instance.new("TextLabel", ep); espStatus.Size = UDim2.new(1, 0, 0, 18); espStatus.LayoutOrder = LO; espStatus.Text = "Transparência: 0.4"; espStatus.TextColor3 = Color3.fromRGB(180, 180, 200); espStatus.BackgroundTransparency = 1; espStatus.Font = Enum.Font.Gotham; espStatus.TextSize = 10; espStatus.TextXAlignment = Enum.TextXAlignment.Left
+local espStatus = Instance.new("TextLabel", ep); espStatus.Size = UDim2.new(1, 0, 0, 18); espStatus.LayoutOrder = LO; espStatus.Text = "Tamanho: 2"; espStatus.TextColor3 = Color3.fromRGB(180, 180, 200); espStatus.BackgroundTransparency = 1; espStatus.Font = Enum.Font.Gotham; espStatus.TextSize = 10; espStatus.TextXAlignment = Enum.TextXAlignment.Left
 
 espToggleBtn.MouseButton1Click:Connect(function() espEnabled = not espEnabled; if espEnabled then espToggleBtn.Text = "LIGADO"; espToggleBtn.BackgroundColor3 = Color3.fromRGB(0, 200, 0) else espToggleBtn.Text = "DESLIGADO"; espToggleBtn.BackgroundColor3 = Color3.fromRGB(180, 0, 0); for _, d in pairs(espData) do if d.dot then d.dot.Visible = false end; if d.slash then d.slash.Visible = false end end end end)
 espSizeBox.FocusLost:Connect(function(entered) if entered then local v = tonumber(espSizeBox.Text); if v and v > 0 and v < 10 then espSize = v; espStatus.Text = "Tamanho: " .. v else espSizeBox.Text = tostring(espSize); espStatus.Text = "Inválido (0.01-9.9)" end end end)
@@ -1172,7 +1173,7 @@ end
 searchBoxTP:GetPropertyChangedSignal("Text"):Connect(UpdatePlayerList)
 Players.PlayerAdded:Connect(UpdatePlayerList); Players.PlayerRemoving:Connect(UpdatePlayerList); UpdatePlayerList()
 
--- ABA ESPECTAR & CARRO (Substituindo a antiga aba BAN PLAYER)
+-- ABA ESPECTAR & CARRO
 LO = 0; SH(bp, "ESPECTAR & CARRO")
 
 local modoDescidaAtivo = false

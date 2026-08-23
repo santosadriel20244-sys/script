@@ -1,0 +1,105 @@
+local Players = game:GetService("Players")
+local LocalPlayer = Players.LocalPlayer
+local Mouse = LocalPlayer:GetMouse()
+
+-- Criar a UI principal
+local ScreenGui = Instance.new("ScreenGui")
+ScreenGui.Name = "MiniCopyMenu"
+ScreenGui.Parent = game.CoreGui
+ScreenGui.ResetOnSpawn = false
+
+-- Janela Principal (Bem pequena)
+local MainFrame = Instance.new("Frame")
+MainFrame.Size = UDim2.new(0, 110, 0, 50)
+MainFrame.Position = UDim2.new(0.05, 0, 0.4, 0)
+MainFrame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+MainFrame.BorderSizePixel = 0
+MainFrame.Active = true
+MainFrame.Draggable = true
+MainFrame.Parent = ScreenGui
+
+local UICorner = Instance.new("UICorner")
+UICorner.CornerRadius = UDim.new(0, 6)
+UICorner.Parent = MainFrame
+
+-- Botão Minimizar (-)
+local MinButton = Instance.new("TextButton")
+MinButton.Size = UDim2.new(0, 20, 0, 20)
+MinButton.Position = UDim2.new(1, -22, 0, 2)
+MinButton.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+MinButton.Text = "-"
+MinButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+MinButton.TextSize = 12
+MinButton.Font = Enum.Font.SourceSansBold
+MinButton.Parent = MainFrame
+
+local MinCorner = Instance.new("UICorner")
+MinCorner.CornerRadius = UDim.new(0, 4)
+MinCorner.Parent = MinButton
+
+-- Botão ON/OFF
+local ToggleButton = Instance.new("TextButton")
+ToggleButton.Size = UDim2.new(0, 80, 0, 22)
+ToggleButton.Position = UDim2.new(0, 5, 0, 22)
+ToggleButton.BackgroundColor3 = Color3.fromRGB(150, 0, 0) -- Vermelho (OFF)
+ToggleButton.Text = "OFF"
+ToggleButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+ToggleButton.TextSize = 11
+ToggleButton.Font = Enum.Font.SourceSansBold
+ToggleButton.Parent = MainFrame
+
+local ToggleCorner = Instance.new("UICorner")
+ToggleCorner.CornerRadius = UDim.new(0, 4)
+ToggleCorner.Parent = ToggleButton
+
+-- Lógica de Funcionamento
+local isActive = false
+local isMinimized = false
+
+-- Ligar/Desligar
+ToggleButton.MouseButton1Click:Connect(function()
+	isActive = not isActive
+	if isActive then
+		ToggleButton.BackgroundColor3 = Color3.fromRGB(0, 150, 0)
+		ToggleButton.Text = "ON"
+	else
+		ToggleButton.BackgroundColor3 = Color3.fromRGB(150, 0, 0)
+		ToggleButton.Text = "OFF"
+	end
+end)
+
+-- Minimizar / Expandir
+MinButton.MouseButton1Click:Connect(function()
+	isMinimized = not isMinimized
+	if isMinimized then
+		MainFrame.Size = UDim2.new(0, 110, 0, 24)
+		ToggleButton.Visible = false
+		MinButton.Text = "+"
+	else
+		MainFrame.Size = UDim2.new(0, 110, 0, 50)
+		ToggleButton.Visible = true
+		MinButton.Text = "-"
+	end
+end)
+
+-- Copiar Nick ao clicar no player
+Mouse.Button1Down:Connect(function()
+	if not isActive then return end
+	
+	local target = Mouse.Target
+	if target and target.Parent then
+		-- Verifica se o alvo é um personagem de player
+		local character = target.Parent
+		local player = Players:GetPlayerFromCharacter(character)
+		
+		if player then
+			setclipboard(player.Name)
+			-- Feedback visual rápido no botão
+			ToggleButton.Text = "COPIADO!"
+			task.wait(0.8)
+			if isActive then
+				ToggleButton.Text = "ON"
+			end
+		end
+	end
+end)

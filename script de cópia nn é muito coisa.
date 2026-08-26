@@ -1,6 +1,6 @@
 --[[
     Mini Menu Arrastável - VERSÃO DELTA
-    - Botão ON/OFF Azul
+    - Botão ON/OFF Azul (inicia OFF)
     - Quando ON, tocar em um player copia o nome (compatível com Delta)
 --]]
 
@@ -68,15 +68,15 @@ local corner = Instance.new("UICorner")
 corner.CornerRadius = UDim.new(0, 12)
 corner.Parent = menu
 
--- Botão ON/OFF
+-- Botão ON/OFF (inicia OFF)
 local toggleBtn = Instance.new("TextButton")
 toggleBtn.Name = "ToggleBtn"
 toggleBtn.Size = UDim2.new(0, 40, 0, 40)
 toggleBtn.Position = UDim2.new(0.5, -20, 0.5, -20)
-toggleBtn.BackgroundColor3 = Color3.new(0.1, 0.3, 0.7) -- Azul
-toggleBtn.BackgroundTransparency = 0.3
+toggleBtn.BackgroundColor3 = Color3.new(0.3, 0.3, 0.3) -- Cinza escuro (OFF)
+toggleBtn.BackgroundTransparency = 0.5
 toggleBtn.BorderSizePixel = 0
-toggleBtn.Text = "ON"
+toggleBtn.Text = "OFF"
 toggleBtn.TextColor3 = Color3.new(1, 1, 1)
 toggleBtn.TextSize = 14
 toggleBtn.Font = Enum.Font.GothamBold
@@ -87,7 +87,7 @@ btnCorner.CornerRadius = UDim.new(0, 10)
 btnCorner.Parent = toggleBtn
 
 -- Variáveis de estado
-local isOn = true
+local isOn = false -- COMEÇA OFF
 local isDragging = false
 local dragStartPos = nil
 local dragOffset = nil
@@ -110,7 +110,10 @@ end
 
 -- Função principal de clique
 local function handleClick(input)
-    if not isOn then return end
+    if not isOn then 
+        print("⚠️ Menu está OFF - Clique no botão para ativar")
+        return 
+    end
     if isDragging then return end
     
     local target = mouse.Target
@@ -134,20 +137,27 @@ local function handleClick(input)
         local name = targetPlayer.Name
         copyText(name)
         
-        -- Feedback visual
+        -- Feedback visual (pisca verde)
         toggleBtn.BackgroundColor3 = Color3.new(0, 0.8, 0.2)
         task.wait(0.15)
         toggleBtn.BackgroundColor3 = isOn and Color3.new(0.1, 0.3, 0.7) or Color3.new(0.3, 0.3, 0.3)
     end
 end
 
--- Alternar ON/OFF
+-- Alternar ON/OFF (quando clica no botão)
 toggleBtn.MouseButton1Click:Connect(function()
     isOn = not isOn
     toggleBtn.Text = isOn and "ON" or "OFF"
-    toggleBtn.BackgroundColor3 = isOn and Color3.new(0.1, 0.3, 0.7) or Color3.new(0.3, 0.3, 0.3)
-    toggleBtn.BackgroundTransparency = isOn and 0.3 or 0.5
-    print("Status: " .. (isOn and "ON" or "OFF"))
+    
+    if isOn then
+        toggleBtn.BackgroundColor3 = Color3.new(0.1, 0.3, 0.7) -- Azul (ON)
+        toggleBtn.BackgroundTransparency = 0.3
+        print("🔵 Menu ATIVADO - Clique em players para copiar nomes")
+    else
+        toggleBtn.BackgroundColor3 = Color3.new(0.3, 0.3, 0.3) -- Cinza (OFF)
+        toggleBtn.BackgroundTransparency = 0.5
+        print("⚫ Menu DESATIVADO")
+    end
 end)
 
 -- Sistema de arraste (melhorado para Delta)
@@ -211,7 +221,7 @@ UserInputService.InputBegan:Connect(function(input)
                 local targetPlayer = getPlayerFromHit(hit)
                 if targetPlayer and targetPlayer ~= player then
                     copyText(targetPlayer.Name)
-                    -- Feedback visual
+                    -- Feedback visual (pisca verde)
                     toggleBtn.BackgroundColor3 = Color3.new(0, 0.8, 0.2)
                     task.wait(0.15)
                     toggleBtn.BackgroundColor3 = isOn and Color3.new(0.1, 0.3, 0.7) or Color3.new(0.3, 0.3, 0.3)
@@ -222,4 +232,5 @@ UserInputService.InputBegan:Connect(function(input)
 end)
 
 print("✅ Mini Menu Delta carregado!")
-print("📋 Toque em um player com o menu ON para copiar o nome")
+print("🔘 Menu inicia OFF - Clique no botão para ativar (ON)")
+print("📋 Quando ON, toque em um player para copiar o nome")

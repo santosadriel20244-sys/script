@@ -1,50 +1,32 @@
+
 --[[
-    Mini Menu Arrastável - VERSÃO DELTA COM SALVAMENTO
-    - Botão ON/OFF Azul (inicia OFF)
+    Mini Menu Arrastável - VERSÃO DELTA COM PERSISTÊNCIA
+    - Não some quando o personagem renasce
+    - Botão ON/OFF (inicia OFF)
     - Botão Salvar Posição (🔒)
-    - Quando ON, tocar em um player copia o nome
 --]]
 
 local Players = game:GetService("Players")
 local UserInputService = game:GetService("UserInputService")
-local RunService = game:GetService("RunService")
-
 local player = Players.LocalPlayer
-local mouse = player:GetMouse()
 
--- Sistema de salvamento (usa o arquivo de dados do executor)
+-- Sistema de salvamento
 local saveKey = "MiniMenu_Posicao"
 local savedData = getrenv and getrenv()._G or _G
 
 local function salvarPosicao(x, y)
-    -- Tenta salvar em diferentes lugares
-    local dados = {
-        x = x,
-        y = y
-    }
-    
-    -- Método 1: Armazenar na memória do executor
+    local dados = { x = x, y = y }
     pcall(function()
         savedData[saveKey] = dados
-    end)
-    
-    -- Método 2: Usar writefile se disponível (para salvar em arquivo)
-    pcall(function()
         if writefile then
             writefile("MiniMenu_Posicao.txt", game:GetService("HttpService"):JSONEncode(dados))
         end
     end)
-    
     print("💾 Posição salva: X=" .. x .. ", Y=" .. y)
 end
 
 local function carregarPosicao()
-    -- Tenta carregar da memória
-    local dados = pcall(function()
-        return savedData[saveKey]
-    end) and savedData[saveKey]
-    
-    -- Se não tiver na memória, tenta carregar do arquivo
+    local dados = pcall(function() return savedData[saveKey] end) and savedData[saveKey]
     if not dados then
         pcall(function()
             if isfile and isfile("MiniMenu_Posicao.txt") then
@@ -53,256 +35,209 @@ local function carregarPosicao()
             end
         end)
     end
-    
     return dados
 end
 
--- Função de cópia compatível com Delta
+-- Função de cópia
 local function copyText(text)
-    local success, err = pcall(function()
-        if toclipboard then
-            toclipboard(text)
-        elseif setclipboard then
-            setclipboard(text)
-        elseif setrbxclipboard then
-            setrbxclipboard(text)
+    pcall(function()
+        if toclipboard then toclipboard(text)
+        elseif setclipboard then setclipboard(text)
+        elseif setrbxclipboard then setrbxclipboard(text)
         else
-            local clipboard = syn and syn.clipboard or (clipboard and clipboard.set)
-            if clipboard and clipboard.set then
-                clipboard.set(text)
-            elseif clipboard and clipboard.write then
-                clipboard.write(text)
-            else
-                warn("Nenhuma função de clipboard encontrada")
-                return false
-            end
+            local cb = syn and syn.clipboard or (clipboard and clipboard.set)
+            if cb and cb.set then cb.set(text) end
         end
-        return true
     end)
+    print("✅ Nome copiado: " .. text)
+end
+
+-- Função para criar o menu
+local function criarMenu()
+    -- Se já existir um menu, não cria outro
+    if player.PlayerGui:FindFirstChild("MiniMenuGui") then
+        return
+    end
     
-    if success then
-        print("✅ Nome copiado: " .. text)
-        return true
+    -- Criar a GUI
+    local screenGui = Instance.new("ScreenGui")
+    screenGui.Name = "MiniMenuGui"
+    screenGui.Parent = player.PlayerGui
+    screenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+    screenGui.ResetOnSpawn = false -- 🔥 IMPEDE DE SUMIR AO RENASCER
+
+    -- Frame principal
+    local menu = Instance.new("Frame")
+    menu.Name = "Menu"
+    menu.Size = UDim2.new(0, 80, 0, 60)
+    menu.BackgroundColor3 = Color3.new(0, 0, 0)
+    menu.BackgroundTransparency = 0.2
+    menu.BorderSizePixel = 2
+    menu.BorderColor3 = Color3.new(0.2, 0.2, 0.2)
+    menu.ClipsDescendants = true
+    menu.Parent = screenGui
+
+    -- Carregar posição salva
+    local posSalva = carregarPosicao()
+    if posSalva and posSalva.x and posSalva.y then
+        menu.Position = UDim2.new(0, posSalva.x, 0, posSalva.y)
     else
-        warn("❌ Falha ao copiar: " .. tostring(err))
-        return false
+        menu.Position = UDim2.new(0.5, -40, 0.5, -30)
     end
-end
 
--- Criar a GUI
-local screenGui = Instance.new("ScreenGui")
-screenGui.Name = "MiniMenuGui"
-screenGui.Parent = player.PlayerGui
-screenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+    -- Cantos arredondados
+    local corner = Instance.new("UICorner")
+    corner.CornerRadius = UDim.new(0, 12)
+    corner.Parent = menu
 
--- Frame principal (menu)
-local menu = Instance.new("Frame")
-menu.Name = "Menu"
-menu.Size = UDim2.new(0, 80, 0, 60) -- Aumentado para caber o botão salvar
-menu.BackgroundColor3 = Color3.new(0, 0, 0)
-menu.BackgroundTransparency = 0.2
-menu.BorderSizePixel = 2
-menu.BorderColor3 = Color3.new(0.2, 0.2, 0.2)
-menu.ClipsDescendants = true
-menu.Parent = screenGui
+    -- Botão ON/OFF
+    local toggleBtn = Instance.new("TextButton")
+    toggleBtn.Name = "ToggleBtn"
+    toggleBtn.Size = UDim2.new(0, 40, 0, 40)
+    toggleBtn.Position = UDim2.new(0.05, 0, 0.5, -20)
+    toggleBtn.BackgroundColor3 = Color3.new(0.3, 0.3, 0.3)
+    toggleBtn.BackgroundTransparency = 0.5
+    toggleBtn.BorderSizePixel = 0
+    toggleBtn.Text = "OFF"
+    toggleBtn.TextColor3 = Color3.new(1, 1, 1)
+    toggleBtn.TextSize = 14
+    toggleBtn.Font = Enum.Font.GothamBold
+    toggleBtn.Parent = menu
+    Instance.new("UICorner").Parent = toggleBtn
 
--- Carregar posição salva
-local posSalva = carregarPosicao()
-if posSalva and posSalva.x and posSalva.y then
-    menu.Position = UDim2.new(0, posSalva.x, 0, posSalva.y)
-    print("📍 Posição restaurada: X=" .. posSalva.x .. ", Y=" .. posSalva.y)
-else
-    menu.Position = UDim2.new(0.5, -40, 0.5, -30) -- Posição padrão (centralizado)
-    print("📍 Posição padrão (centralizada)")
-end
-
--- Cantos arredondados
-local corner = Instance.new("UICorner")
-corner.CornerRadius = UDim.new(0, 12)
-corner.Parent = menu
-
--- Botão ON/OFF (inicia OFF)
-local toggleBtn = Instance.new("TextButton")
-toggleBtn.Name = "ToggleBtn"
-toggleBtn.Size = UDim2.new(0, 40, 0, 40)
-toggleBtn.Position = UDim2.new(0.05, 0, 0.5, -20)
-toggleBtn.BackgroundColor3 = Color3.new(0.3, 0.3, 0.3)
-toggleBtn.BackgroundTransparency = 0.5
-toggleBtn.BorderSizePixel = 0
-toggleBtn.Text = "OFF"
-toggleBtn.TextColor3 = Color3.new(1, 1, 1)
-toggleBtn.TextSize = 14
-toggleBtn.Font = Enum.Font.GothamBold
-toggleBtn.Parent = menu
-
-local btnCorner = Instance.new("UICorner")
-btnCorner.CornerRadius = UDim.new(0, 10)
-btnCorner.Parent = toggleBtn
-
--- Botão Salvar (🔒)
-local saveBtn = Instance.new("TextButton")
-saveBtn.Name = "SaveBtn"
-saveBtn.Size = UDim2.new(0, 20, 0, 40)
-saveBtn.Position = UDim2.new(0.7, 0, 0.5, -20)
-saveBtn.BackgroundColor3 = Color3.new(0.1, 0.5, 0.1)
-saveBtn.BackgroundTransparency = 0.3
-saveBtn.BorderSizePixel = 1
-saveBtn.BorderColor3 = Color3.new(0.2, 0.8, 0.2)
-saveBtn.Text = "🔒"
-saveBtn.TextColor3 = Color3.new(1, 1, 1)
-saveBtn.TextSize = 14
-saveBtn.Font = Enum.Font.GothamBold
-saveBtn.Parent = menu
-
-local saveCorner = Instance.new("UICorner")
-saveCorner.CornerRadius = UDim.new(0, 6)
-saveCorner.Parent = saveBtn
-
--- Variáveis de estado
-local isOn = false
-local isDragging = false
-local dragStartPos = nil
-local dragOffset = nil
-
--- Função para verificar se clicou em um player
-local function getPlayerFromHit(hit)
-    if not hit then return nil end
-    local char = hit.Parent
-    if char and char:FindFirstChild("Humanoid") then
-        return Players:GetPlayerFromCharacter(char)
-    end
-    return nil
-end
-
--- Função principal de clique
-local function handleClick(input)
-    if not isOn then 
-        print("⚠️ Menu está OFF - Clique no botão para ativar")
-        return 
-    end
-    if isDragging then return end
-    
-    local target = mouse.Target
-    if not target and input and input.Position then
-        local ray = Ray.new(
-            workspace.CurrentCamera.CFrame.Position,
-            (workspace.CurrentCamera:ScreenPointToRay(input.Position.X, input.Position.Y).Direction * 1000)
-        )
-        local hit = workspace:FindPartOnRay(ray, player.Character, false, true)
-        if hit then target = hit end
-    end
-    
-    if target then
-        local targetPlayer = getPlayerFromHit(target)
-        if targetPlayer and targetPlayer ~= player then
-            copyText(targetPlayer.Name)
-            toggleBtn.BackgroundColor3 = Color3.new(0, 0.8, 0.2)
-            task.wait(0.15)
-            toggleBtn.BackgroundColor3 = isOn and Color3.new(0.1, 0.3, 0.7) or Color3.new(0.3, 0.3, 0.3)
-        end
-    end
-end
-
--- Alternar ON/OFF
-toggleBtn.MouseButton1Click:Connect(function()
-    isOn = not isOn
-    toggleBtn.Text = isOn and "ON" or "OFF"
-    
-    if isOn then
-        toggleBtn.BackgroundColor3 = Color3.new(0.1, 0.3, 0.7)
-        toggleBtn.BackgroundTransparency = 0.3
-        print("🔵 Menu ATIVADO - Clique em players para copiar nomes")
-    else
-        toggleBtn.BackgroundColor3 = Color3.new(0.3, 0.3, 0.3)
-        toggleBtn.BackgroundTransparency = 0.5
-        print("⚫ Menu DESATIVADO")
-    end
-end)
-
--- Salvar posição
-saveBtn.MouseButton1Click:Connect(function()
-    local absX = menu.AbsolutePosition.X
-    local absY = menu.AbsolutePosition.Y
-    salvarPosicao(absX, absY)
-    
-    -- Feedback visual
-    saveBtn.BackgroundColor3 = Color3.new(0, 1, 0)
-    saveBtn.Text = "✓"
-    task.wait(0.3)
+    -- Botão Salvar
+    local saveBtn = Instance.new("TextButton")
+    saveBtn.Name = "SaveBtn"
+    saveBtn.Size = UDim2.new(0, 20, 0, 40)
+    saveBtn.Position = UDim2.new(0.7, 0, 0.5, -20)
     saveBtn.BackgroundColor3 = Color3.new(0.1, 0.5, 0.1)
+    saveBtn.BackgroundTransparency = 0.3
+    saveBtn.BorderSizePixel = 1
+    saveBtn.BorderColor3 = Color3.new(0.2, 0.8, 0.2)
     saveBtn.Text = "🔒"
-end)
+    saveBtn.TextColor3 = Color3.new(1, 1, 1)
+    saveBtn.TextSize = 14
+    saveBtn.Font = Enum.Font.GothamBold
+    saveBtn.Parent = menu
+    Instance.new("UICorner").Parent = saveBtn
 
--- Sistema de arraste
-menu.InputBegan:Connect(function(input)
-    if input.UserInputType == Enum.UserInputType.MouseButton1 or 
-       input.UserInputType == Enum.UserInputType.Touch then
-        isDragging = true
-        dragStartPos = input.Position
-        dragOffset = Vector2.new(menu.AbsolutePosition.X - input.Position.X, 
-                                  menu.AbsolutePosition.Y - input.Position.Y)
-    end
-end)
+    -- Variáveis
+    local isOn = false
+    local isDragging = false
+    local dragOffset = nil
 
-menu.InputEnded:Connect(function(input)
-    if input.UserInputType == Enum.UserInputType.MouseButton1 or 
-       input.UserInputType == Enum.UserInputType.Touch then
-        isDragging = false
-    end
-end)
-
-UserInputService.InputChanged:Connect(function(input)
-    if isDragging then
-        if input.UserInputType == Enum.UserInputType.MouseMovement or
-           input.UserInputType == Enum.UserInputType.Touch then
-            local newPos = UDim2.new(0, input.Position.X + dragOffset.X, 
-                                     0, input.Position.Y + dragOffset.Y)
-            menu.Position = newPos
+    -- Função getPlayer
+    local function getPlayerFromHit(hit)
+        if not hit then return nil end
+        local char = hit.Parent
+        if char and char:FindFirstChild("Humanoid") then
+            return Players:GetPlayerFromCharacter(char)
         end
+        return nil
     end
-end)
 
--- Clique com mouse
-mouse.Button1Down:Connect(function()
-    task.wait(0.05)
-    if not isDragging then
-        handleClick(nil)
-    end
-end)
-
--- Toque no mobile
-UserInputService.TouchStarted:Connect(function(input)
-    task.wait(0.05)
-    if not isDragging and isOn then
-        handleClick(input)
-    end
-end)
-
--- Detecção extra para Delta
-UserInputService.InputBegan:Connect(function(input)
-    if input.UserInputType == Enum.UserInputType.Touch then
-        task.wait(0.1)
-        if not isDragging and isOn and input.UserInputState == Enum.UserInputState.Began then
-            local pos = input.Position
+    -- Função de clique
+    local function handleClick(input)
+        if not isOn or isDragging then return end
+        
+        local mouse = player:GetMouse()
+        local target = mouse.Target
+        
+        if not target and input and input.Position then
             local ray = Ray.new(
                 workspace.CurrentCamera.CFrame.Position,
-                (workspace.CurrentCamera:ScreenPointToRay(pos.X, pos.Y).Direction * 1000)
+                (workspace.CurrentCamera:ScreenPointToRay(input.Position.X, input.Position.Y).Direction * 1000)
             )
             local hit = workspace:FindPartOnRay(ray, player.Character, false, true)
-            if hit then
-                local targetPlayer = getPlayerFromHit(hit)
-                if targetPlayer and targetPlayer ~= player then
-                    copyText(targetPlayer.Name)
-                    toggleBtn.BackgroundColor3 = Color3.new(0, 0.8, 0.2)
-                    task.wait(0.15)
-                    toggleBtn.BackgroundColor3 = isOn and Color3.new(0.1, 0.3, 0.7) or Color3.new(0.3, 0.3, 0.3)
-                end
+            if hit then target = hit end
+        end
+        
+        if target then
+            local targetPlayer = getPlayerFromHit(target)
+            if targetPlayer and targetPlayer ~= player then
+                copyText(targetPlayer.Name)
+                toggleBtn.BackgroundColor3 = Color3.new(0, 0.8, 0.2)
+                task.wait(0.15)
+                toggleBtn.BackgroundColor3 = isOn and Color3.new(0.1, 0.3, 0.7) or Color3.new(0.3, 0.3, 0.3)
             end
         end
     end
+
+    -- Eventos dos botões
+    toggleBtn.MouseButton1Click:Connect(function()
+        isOn = not isOn
+        toggleBtn.Text = isOn and "ON" or "OFF"
+        toggleBtn.BackgroundColor3 = isOn and Color3.new(0.1, 0.3, 0.7) or Color3.new(0.3, 0.3, 0.3)
+        toggleBtn.BackgroundTransparency = isOn and 0.3 or 0.5
+        print(isOn and "🔵 ON" or "⚫ OFF")
+    end)
+
+    saveBtn.MouseButton1Click:Connect(function()
+        local absX = menu.AbsolutePosition.X
+        local absY = menu.AbsolutePosition.Y
+        salvarPosicao(absX, absY)
+        saveBtn.BackgroundColor3 = Color3.new(0, 1, 0)
+        saveBtn.Text = "✓"
+        task.wait(0.3)
+        saveBtn.BackgroundColor3 = Color3.new(0.1, 0.5, 0.1)
+        saveBtn.Text = "🔒"
+    end)
+
+    -- Arraste
+    menu.InputBegan:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 or 
+           input.UserInputType == Enum.UserInputType.Touch then
+            isDragging = true
+            dragOffset = Vector2.new(menu.AbsolutePosition.X - input.Position.X, 
+                                      menu.AbsolutePosition.Y - input.Position.Y)
+        end
+    end)
+
+    menu.InputEnded:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 or 
+           input.UserInputType == Enum.UserInputType.Touch then
+            isDragging = false
+        end
+    end)
+
+    UserInputService.InputChanged:Connect(function(input)
+        if isDragging then
+            if input.UserInputType == Enum.UserInputType.MouseMovement or
+               input.UserInputType == Enum.UserInputType.Touch then
+                menu.Position = UDim2.new(0, input.Position.X + dragOffset.X, 
+                                           0, input.Position.Y + dragOffset.Y)
+            end
+        end
+    end)
+
+    -- Cliques
+    local mouse = player:GetMouse()
+    mouse.Button1Down:Connect(function()
+        task.wait(0.05)
+        if not isDragging then handleClick(nil) end
+    end)
+
+    UserInputService.TouchStarted:Connect(function(input)
+        task.wait(0.05)
+        if not isDragging and isOn then handleClick(input) end
+    end)
+    
+    print("✅ Menu criado com persistência!")
+end
+
+-- 🔥 CRIA O MENU PELA PRIMEIRA VEZ
+criarMenu()
+
+-- 🔥 FICA VIGIANDO SE O MENU FOI DESTRUÍDO E RECRIA
+player.PlayerGui.ChildRemoved:Connect(function(child)
+    if child.Name == "MiniMenuGui" then
+        task.wait(0.5) -- Pequeno delay para evitar conflitos
+        criarMenu()
+        print("🔄 Menu recriado após ser destruído!")
+    end
 end)
 
-print("✅ Mini Menu Delta com salvamento carregado!")
+print("✅ Mini Menu Delta com persistência carregado!")
+print("🔄 O menu NÃO vai sumir quando você renascer!")
 print("🔘 Menu inicia OFF - Clique no botão para ativar (ON)")
 print("🔒 Clique em 🔒 para salvar a posição atual")
-print("📋 Quando ON, toque em um player para copiar o nome")

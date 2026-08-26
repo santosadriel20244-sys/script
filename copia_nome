@@ -1,9 +1,7 @@
-
 --[[
-    Mini Menu Arrastável - VERSÃO DELTA COM PERSISTÊNCIA
-    - Não some quando o personagem renasce
-    - Botão ON/OFF (inicia OFF)
-    - Botão Salvar Posição (🔒)
+    Mini Menu Arrastável - VERSÃO DELTA (SEMPRE NO TOPO)
+    - Fica acima de todos os botões e menus do jogo
+    - Não some ao renascer
 --]]
 
 local Players = game:GetService("Players")
@@ -52,19 +50,20 @@ local function copyText(text)
     print("✅ Nome copiado: " .. text)
 end
 
--- Função para criar o menu
+-- 🔥 Função para criar o menu SEMPRE NO TOPO
 local function criarMenu()
     -- Se já existir um menu, não cria outro
     if player.PlayerGui:FindFirstChild("MiniMenuGui") then
         return
     end
     
-    -- Criar a GUI
+    -- 🔥 CRIAR A GUI COM PRIORIDADE MÁXIMA
     local screenGui = Instance.new("ScreenGui")
     screenGui.Name = "MiniMenuGui"
     screenGui.Parent = player.PlayerGui
-    screenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
-    screenGui.ResetOnSpawn = false -- 🔥 IMPEDE DE SUMIR AO RENASCER
+    screenGui.ZIndexBehavior = Enum.ZIndexBehavior.Global -- 🔥 FICA ACIMA DE TUDO
+    screenGui.ResetOnSpawn = false -- 🔥 NÃO SOME AO RENASCER
+    screenGui.DisplayOrder = 999999 -- 🔥 PRIORIDADE MÁXIMA (número alto = acima)
 
     -- Frame principal
     local menu = Instance.new("Frame")
@@ -76,6 +75,7 @@ local function criarMenu()
     menu.BorderColor3 = Color3.new(0.2, 0.2, 0.2)
     menu.ClipsDescendants = true
     menu.Parent = screenGui
+    menu.ZIndex = 999999 -- 🔥 PRIORIDADE DENTRO DA GUI
 
     -- Carregar posição salva
     local posSalva = carregarPosicao()
@@ -103,6 +103,7 @@ local function criarMenu()
     toggleBtn.TextSize = 14
     toggleBtn.Font = Enum.Font.GothamBold
     toggleBtn.Parent = menu
+    toggleBtn.ZIndex = 999999
     Instance.new("UICorner").Parent = toggleBtn
 
     -- Botão Salvar
@@ -119,6 +120,7 @@ local function criarMenu()
     saveBtn.TextSize = 14
     saveBtn.Font = Enum.Font.GothamBold
     saveBtn.Parent = menu
+    saveBtn.ZIndex = 999999
     Instance.new("UICorner").Parent = saveBtn
 
     -- Variáveis
@@ -222,7 +224,7 @@ local function criarMenu()
         if not isDragging and isOn then handleClick(input) end
     end)
     
-    print("✅ Menu criado com persistência!")
+    print("✅ Menu criado com prioridade máxima!")
 end
 
 -- 🔥 CRIA O MENU PELA PRIMEIRA VEZ
@@ -231,13 +233,14 @@ criarMenu()
 -- 🔥 FICA VIGIANDO SE O MENU FOI DESTRUÍDO E RECRIA
 player.PlayerGui.ChildRemoved:Connect(function(child)
     if child.Name == "MiniMenuGui" then
-        task.wait(0.5) -- Pequeno delay para evitar conflitos
+        task.wait(0.5)
         criarMenu()
         print("🔄 Menu recriado após ser destruído!")
     end
 end)
 
-print("✅ Mini Menu Delta com persistência carregado!")
-print("🔄 O menu NÃO vai sumir quando você renascer!")
+print("✅ Mini Menu Delta - SEMPRE NO TOPO!")
+print("🔝 O menu fica acima de TODOS os elementos do jogo")
+print("🔄 O menu NÃO vai sumir quando você renascer")
 print("🔘 Menu inicia OFF - Clique no botão para ativar (ON)")
 print("🔒 Clique em 🔒 para salvar a posição atual")

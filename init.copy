@@ -1,0 +1,246 @@
+--[[
+    Mini Menu Arrastável - VERSÃO DELTA (SEMPRE NO TOPO)
+    - Fica acima de todos os botões e menus do jogo
+    - Não some ao renascer
+--]]
+
+local Players = game:GetService("Players")
+local UserInputService = game:GetService("UserInputService")
+local player = Players.LocalPlayer
+
+-- Sistema de salvamento
+local saveKey = "MiniMenu_Posicao"
+local savedData = getrenv and getrenv()._G or _G
+
+local function salvarPosicao(x, y)
+    local dados = { x = x, y = y }
+    pcall(function()
+        savedData[saveKey] = dados
+        if writefile then
+            writefile("MiniMenu_Posicao.txt", game:GetService("HttpService"):JSONEncode(dados))
+        end
+    end)
+    print("💾 Posição salva: X=" .. x .. ", Y=" .. y)
+end
+
+local function carregarPosicao()
+    local dados = pcall(function() return savedData[saveKey] end) and savedData[saveKey]
+    if not dados then
+        pcall(function()
+            if isfile and isfile("MiniMenu_Posicao.txt") then
+                local conteudo = readfile("MiniMenu_Posicao.txt")
+                dados = game:GetService("HttpService"):JSONDecode(conteudo)
+            end
+        end)
+    end
+    return dados
+end
+
+-- Função de cópia
+local function copyText(text)
+    pcall(function()
+        if toclipboard then toclipboard(text)
+        elseif setclipboard then setclipboard(text)
+        elseif setrbxclipboard then setrbxclipboard(text)
+        else
+            local cb = syn and syn.clipboard or (clipboard and clipboard.set)
+            if cb and cb.set then cb.set(text) end
+        end
+    end)
+    print("✅ Nome copiado: " .. text)
+end
+
+-- 🔥 Função para criar o menu SEMPRE NO TOPO
+local function criarMenu()
+    -- Se já existir um menu, não cria outro
+    if player.PlayerGui:FindFirstChild("MiniMenuGui") then
+        return
+    end
+    
+    -- 🔥 CRIAR A GUI COM PRIORIDADE MÁXIMA
+    local screenGui = Instance.new("ScreenGui")
+    screenGui.Name = "MiniMenuGui"
+    screenGui.Parent = player.PlayerGui
+    screenGui.ZIndexBehavior = Enum.ZIndexBehavior.Global -- 🔥 FICA ACIMA DE TUDO
+    screenGui.ResetOnSpawn = false -- 🔥 NÃO SOME AO RENASCER
+    screenGui.DisplayOrder = 999999 -- 🔥 PRIORIDADE MÁXIMA (número alto = acima)
+
+    -- Frame principal
+    local menu = Instance.new("Frame")
+    menu.Name = "Menu"
+    menu.Size = UDim2.new(0, 80, 0, 60)
+    menu.BackgroundColor3 = Color3.new(0, 0, 0)
+    menu.BackgroundTransparency = 0.2
+    menu.BorderSizePixel = 2
+    menu.BorderColor3 = Color3.new(0.2, 0.2, 0.2)
+    menu.ClipsDescendants = true
+    menu.Parent = screenGui
+    menu.ZIndex = 999999 -- 🔥 PRIORIDADE DENTRO DA GUI
+
+    -- Carregar posição salva
+    local posSalva = carregarPosicao()
+    if posSalva and posSalva.x and posSalva.y then
+        menu.Position = UDim2.new(0, posSalva.x, 0, posSalva.y)
+    else
+        menu.Position = UDim2.new(0.5, -40, 0.5, -30)
+    end
+
+    -- Cantos arredondados
+    local corner = Instance.new("UICorner")
+    corner.CornerRadius = UDim.new(0, 12)
+    corner.Parent = menu
+
+    -- Botão ON/OFF
+    local toggleBtn = Instance.new("TextButton")
+    toggleBtn.Name = "ToggleBtn"
+    toggleBtn.Size = UDim2.new(0, 40, 0, 40)
+    toggleBtn.Position = UDim2.new(0.05, 0, 0.5, -20)
+    toggleBtn.BackgroundColor3 = Color3.new(0.3, 0.3, 0.3)
+    toggleBtn.BackgroundTransparency = 0.5
+    toggleBtn.BorderSizePixel = 0
+    toggleBtn.Text = "OFF"
+    toggleBtn.TextColor3 = Color3.new(1, 1, 1)
+    toggleBtn.TextSize = 14
+    toggleBtn.Font = Enum.Font.GothamBold
+    toggleBtn.Parent = menu
+    toggleBtn.ZIndex = 999999
+    Instance.new("UICorner").Parent = toggleBtn
+
+    -- Botão Salvar
+    local saveBtn = Instance.new("TextButton")
+    saveBtn.Name = "SaveBtn"
+    saveBtn.Size = UDim2.new(0, 20, 0, 40)
+    saveBtn.Position = UDim2.new(0.7, 0, 0.5, -20)
+    saveBtn.BackgroundColor3 = Color3.new(0.1, 0.5, 0.1)
+    saveBtn.BackgroundTransparency = 0.3
+    saveBtn.BorderSizePixel = 1
+    saveBtn.BorderColor3 = Color3.new(0.2, 0.8, 0.2)
+    saveBtn.Text = "🔒"
+    saveBtn.TextColor3 = Color3.new(1, 1, 1)
+    saveBtn.TextSize = 14
+    saveBtn.Font = Enum.Font.GothamBold
+    saveBtn.Parent = menu
+    saveBtn.ZIndex = 999999
+    Instance.new("UICorner").Parent = saveBtn
+
+    -- Variáveis
+    local isOn = false
+    local isDragging = false
+    local dragOffset = nil
+
+    -- Função getPlayer
+    local function getPlayerFromHit(hit)
+        if not hit then return nil end
+        local char = hit.Parent
+        if char and char:FindFirstChild("Humanoid") then
+            return Players:GetPlayerFromCharacter(char)
+        end
+        return nil
+    end
+
+    -- Função de clique
+    local function handleClick(input)
+        if not isOn or isDragging then return end
+        
+        local mouse = player:GetMouse()
+        local target = mouse.Target
+        
+        if not target and input and input.Position then
+            local ray = Ray.new(
+                workspace.CurrentCamera.CFrame.Position,
+                (workspace.CurrentCamera:ScreenPointToRay(input.Position.X, input.Position.Y).Direction * 1000)
+            )
+            local hit = workspace:FindPartOnRay(ray, player.Character, false, true)
+            if hit then target = hit end
+        end
+        
+        if target then
+            local targetPlayer = getPlayerFromHit(target)
+            if targetPlayer and targetPlayer ~= player then
+                copyText(targetPlayer.Name)
+                toggleBtn.BackgroundColor3 = Color3.new(0, 0.8, 0.2)
+                task.wait(0.15)
+                toggleBtn.BackgroundColor3 = isOn and Color3.new(0.1, 0.3, 0.7) or Color3.new(0.3, 0.3, 0.3)
+            end
+        end
+    end
+
+    -- Eventos dos botões
+    toggleBtn.MouseButton1Click:Connect(function()
+        isOn = not isOn
+        toggleBtn.Text = isOn and "ON" or "OFF"
+        toggleBtn.BackgroundColor3 = isOn and Color3.new(0.1, 0.3, 0.7) or Color3.new(0.3, 0.3, 0.3)
+        toggleBtn.BackgroundTransparency = isOn and 0.3 or 0.5
+        print(isOn and "🔵 ON" or "⚫ OFF")
+    end)
+
+    saveBtn.MouseButton1Click:Connect(function()
+        local absX = menu.AbsolutePosition.X
+        local absY = menu.AbsolutePosition.Y
+        salvarPosicao(absX, absY)
+        saveBtn.BackgroundColor3 = Color3.new(0, 1, 0)
+        saveBtn.Text = "✓"
+        task.wait(0.3)
+        saveBtn.BackgroundColor3 = Color3.new(0.1, 0.5, 0.1)
+        saveBtn.Text = "🔒"
+    end)
+
+    -- Arraste
+    menu.InputBegan:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 or 
+           input.UserInputType == Enum.UserInputType.Touch then
+            isDragging = true
+            dragOffset = Vector2.new(menu.AbsolutePosition.X - input.Position.X, 
+                                      menu.AbsolutePosition.Y - input.Position.Y)
+        end
+    end)
+
+    menu.InputEnded:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 or 
+           input.UserInputType == Enum.UserInputType.Touch then
+            isDragging = false
+        end
+    end)
+
+    UserInputService.InputChanged:Connect(function(input)
+        if isDragging then
+            if input.UserInputType == Enum.UserInputType.MouseMovement or
+               input.UserInputType == Enum.UserInputType.Touch then
+                menu.Position = UDim2.new(0, input.Position.X + dragOffset.X, 
+                                           0, input.Position.Y + dragOffset.Y)
+            end
+        end
+    end)
+
+    -- Cliques
+    local mouse = player:GetMouse()
+    mouse.Button1Down:Connect(function()
+        task.wait(0.05)
+        if not isDragging then handleClick(nil) end
+    end)
+
+    UserInputService.TouchStarted:Connect(function(input)
+        task.wait(0.05)
+        if not isDragging and isOn then handleClick(input) end
+    end)
+    
+    print("✅ Menu criado com prioridade máxima!")
+end
+
+-- 🔥 CRIA O MENU PELA PRIMEIRA VEZ
+criarMenu()
+
+-- 🔥 FICA VIGIANDO SE O MENU FOI DESTRUÍDO E RECRIA
+player.PlayerGui.ChildRemoved:Connect(function(child)
+    if child.Name == "MiniMenuGui" then
+        task.wait(0.5)
+        criarMenu()
+        print("🔄 Menu recriado após ser destruído!")
+    end
+end)
+
+print("✅ Mini Menu Delta - SEMPRE NO TOPO!")
+print("🔝 O menu fica acima de TODOS os elementos do jogo")
+print("🔄 O menu NÃO vai sumir quando você renascer")
+print("🔘 Menu inicia OFF - Clique no botão para ativar (ON)")
+print("🔒 Clique em 🔒 para salvar a posição atual")

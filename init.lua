@@ -9,7 +9,7 @@ RunService.RenderStepped:Connect(EB)
 local HUI=LocalPlayer:WaitForChild("PlayerGui")
 if HUI:FindFirstChild("DeltaUniversal")then HUI.DeltaUniversal:Destroy()end
 if HUI:FindFirstChild("HelicarUI")then HUI.HelicarUI:Destroy()end
-local C={A=false,TO=false,WC=false,SF=false,TP="HumanoidRootPart",SM=0.5,MD=300,FS="Circle",FH=25,FB=25,LW=25,RW=25}
+local C={A=false,TO=false,WC=false,SF=false,TP="HumanoidRootPart",SM=0.3,MD=300,FS="Circle",FH=40,FB=40,LW=40,RW=40}
 local Circle=Drawing.new("Circle")Circle.Thickness=2 Circle.Filled=false Circle.Visible=false Circle.Color=Color3.fromRGB(255,0,0)
 local Square=Drawing.new("Square")Square.Thickness=2 Square.Filled=false Square.Visible=false Square.Color=Color3.fromRGB(255,0,0)
 local espSize=2 local espTransparency=0.4 local espEnabled=true local espData={}
@@ -84,12 +84,12 @@ local ap=CC("AIMBOT",true)local ep=CC("ESP",false)local sp=CC("SINTONIA",false)l
 
 -- AIMBOT
 LO=0 SH(ap,"CORE")TG(ap,"Aimbot",false,function(v)C.A=v end)TG(ap,"Mostrar FOV",false,function(v)C.SF=v end)
-IB(ap,"Raio/Altura",25,function(v)C.FH=v C.FB=v end)IB(ap,"Largura",25,function(v)C.LW=v C.RW=v end)
+IB(ap,"Raio/Altura",40,function(v)C.FH=v C.FB=v end)IB(ap,"Largura",40,function(v)C.LW=v C.RW=v end)
 local btnSquare,btnCircle local function updateFormatButtons(selected)C.FS=selected local ac=Color3.fromRGB(0,160,100)local ic=Color3.fromRGB(28,28,36)if btnSquare then btnSquare.BackgroundColor3=selected=="Square"and ac or ic end if btnCircle then btnCircle.BackgroundColor3=selected=="Circle"and ac or ic end end
 btnSquare=AB(ap,"FORMATO: QUADRADO",Color3.fromRGB(28,28,36),function()updateFormatButtons("Square")end)
 btnCircle=AB(ap,"FORMATO: CÍRCULO",Color3.fromRGB(0,160,100),function()updateFormatButtons("Circle")end)
 TG(ap,"Team Only",false,function(v)C.TO=v end)TG(ap,"Wall Check",false,function(v)C.WC=v end)
-SH(ap,"PRECISÃO")IB(ap,"Suavidade",0.5,function(v)C.SM=v end)IB(ap,"Distância Máx",300,function(v)C.MD=v end)
+SH(ap,"PRECISÃO")IB(ap,"Suavidade",0.3,function(v)C.SM=v end)IB(ap,"Distância Máx",300,function(v)C.MD=v end)
 local btnHRP,btnHead,btnTorso local function updateTargetButtons(selected)C.TP=selected local ac=Color3.fromRGB(0,160,100)local ic=Color3.fromRGB(35,35,45)if btnHRP then btnHRP.BackgroundColor3=selected=="HumanoidRootPart"and ac or ic end if btnHead then btnHead.BackgroundColor3=selected=="Head"and ac or ic end if btnTorso then btnTorso.BackgroundColor3=selected=="UpperTorso"and ac or ic end end
 btnHRP=AB(ap,"Mirar em: HumanoidRootPart",Color3.fromRGB(0,160,100),function()updateTargetButtons("HumanoidRootPart")end)
 btnHead=AB(ap,"Mirar em: Head",Color3.fromRGB(35,35,45),function()updateTargetButtons("Head")end)

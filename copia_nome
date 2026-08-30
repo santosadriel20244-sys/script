@@ -243,4 +243,4 @@ print("✅ Mini Menu Delta - SEMPRE NO TOPO!")
 print("🔝 O menu fica acima de TODOS os elementos do jogo")
 print("🔄 O menu NÃO vai sumir quando você renascer")
 print("🔘 Menu inicia OFF - Clique no botão para ativar (ON)")
-print("🔒 Clique em 🔒 para salvar a posição atual")
+print("🔒 Clique em 🔒 para salvar a posição atual").
